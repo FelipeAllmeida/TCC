@@ -20,7 +20,7 @@ public class InputInfo
 {
     public Unit hit;
     public Vector3 worldClickPoint;
-    public Vector3 screenPointClick;
+    public Vector3 screenClickPoint;
 }
 
 public class InputManager 
@@ -34,6 +34,8 @@ public class InputManager
 
     private bool _isInputsEnabled = true;
 
+    private float _currentFloor = 0f;
+
     public void EnableInputs(bool p_value)
     {
         _isInputsEnabled = p_value;
@@ -41,6 +43,11 @@ public class InputManager
         {
             _dictInputs.Clear();
         }
+    }
+
+    public void SetCurrentFloor(int p_floor)
+    {
+        _currentFloor = (int)p_floor;
     }
 
     public void CheckInput()
@@ -122,7 +129,8 @@ public class InputManager
         {
             __inputInfo.hit = __raycastHit.collider.gameObject.GetComponent<Unit>();
             __inputInfo.worldClickPoint = __raycastHit.point;
-            __inputInfo.screenPointClick = Input.mousePosition;
+            __inputInfo.worldClickPoint.y = _currentFloor;
+            __inputInfo.screenClickPoint = Input.mousePosition;
         }
         return __inputInfo;
     }
@@ -131,7 +139,7 @@ public class InputManager
     {
         if (_dictInputs.ContainsKey(p_inputID) == true)
         {
-            _dictInputs[p_inputID].screenPointClick = Input.mousePosition;
+            _dictInputs[p_inputID].screenClickPoint = Input.mousePosition;
         }
     }
 }

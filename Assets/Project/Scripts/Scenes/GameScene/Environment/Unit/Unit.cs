@@ -28,12 +28,11 @@ public abstract class Unit : MonoBehaviour
     protected float _currentHealth;
     protected float _maxHealth;
 
-    protected Command _command;
-
     protected UnitMovementType _unitMovementType;
     #endregion
 
     #region Protected-Serialized Data
+    [SerializeField] protected CommandController _commandController;
     [SerializeField] protected NavMeshAgent _navMeshAgent;
     #endregion
 
@@ -50,8 +49,7 @@ public abstract class Unit : MonoBehaviour
 
     public virtual void MoveTo(Vector3 p_targetPosition)
     {
-        _command = new MoveCommand(this, p_targetPosition);
-        _command.Execute();
+        _commandController.MoveTo(this, p_targetPosition);
     }
 
     public virtual void StopMoving()

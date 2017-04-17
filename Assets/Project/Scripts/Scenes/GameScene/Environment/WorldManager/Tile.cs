@@ -8,13 +8,24 @@ public enum TyleType
     NONE
 }
 
-public class Tile : MonoBehaviour 
+public class Tile 
 {
     public Tile(Vector2 p_position, TyleType p_tileType)
     {
-    
+        _position = p_position;
+        _tileType = p_tileType;
+        _width = 1;
+        _height = 1;
     }
 
-    private TyleType tileType;
-    private Vector2 position;
+    private TyleType _tileType;
+    private Vector2 _position;
+
+    private float _width;
+    private float _height;
+
+    public bool IsUnitInsideTile(Unit p_unit)
+    {
+        return false;
+    }
 }

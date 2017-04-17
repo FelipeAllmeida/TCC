@@ -18,7 +18,7 @@ public class GameScene : State<TCC.StateType>
     
     public override void AInitialize()
     {
-        _cameraManager.Initialize(new Vector3(20f, 8f, 20f));
+        _cameraManager.Initialize(new Vector3(100f, 8f, 100f));
         InitializeInputManager();
         InitializeDictPlayers();
     }
@@ -59,7 +59,7 @@ public class GameScene : State<TCC.StateType>
     public override void Enable()
     {
         gameObject.SetActive(true);
-        _worldManager.Initialize (20, 20);
+       // _worldManager.Initialize (20, 20);
         _worldManager.BuildWorld();
     }
 

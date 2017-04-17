@@ -10,7 +10,7 @@ public class MoveCommand : Command
         _targetPosition = p_targetPosition;
     }
 
-    public override void Execute()
+    public override CommandType Execute()
     {
         _previousPosition = _actor.transform.position;
         if (_actor.GetUnitType() == UnitMovementType.GROUND)
@@ -21,6 +21,13 @@ public class MoveCommand : Command
         {
 
         }
+        return CommandType.MOVE;
+    }
+
+    public override void Stop()
+    {
+        _actor.GetNavMeshAgent().Stop();
+        _actor.GetNavMeshAgent().ResetPath();
     }
 
     public override void Undo()

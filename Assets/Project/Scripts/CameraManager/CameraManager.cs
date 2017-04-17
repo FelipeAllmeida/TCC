@@ -63,8 +63,8 @@ public class CameraManager : MonoBehaviour
 
         if (__hasChange == true)
         {
-            __newCameraPosition.x = Mathf.Clamp(__newCameraPosition.x, 0f, _worldDimensions.x);
-            __newCameraPosition.z = Mathf.Clamp(__newCameraPosition.z, 0f, _worldDimensions.z);
+            __newCameraPosition.x = Mathf.Clamp(__newCameraPosition.x, -_worldDimensions.x / 2f, _worldDimensions.x/2f);
+            __newCameraPosition.z = Mathf.Clamp(__newCameraPosition.z, - _worldDimensions.z / 2f, _worldDimensions.z/2f);
             __newCameraPosition.y = 10f;
             Vector3 __startCameraPosition = _mainCamera.transform.position;
             _cameraPositionNodule = ATween.Vector3To(__startCameraPosition, __newCameraPosition, 0.1f, TweenEase.LINEAR, delegate (Vector3 p_value)

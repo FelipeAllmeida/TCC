@@ -2,13 +2,20 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Command 
+public abstract class Command 
 {
-    public virtual void Execute()
+    public virtual CommandType Execute()
     {
+        return CommandType.NONE;
+    }
+
+    public virtual void Stop()
+    {
+    
     }
 
     public virtual void Undo()
-    {  
+    {
+      
     }
 }

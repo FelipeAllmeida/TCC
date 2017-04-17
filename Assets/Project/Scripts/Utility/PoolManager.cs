@@ -5,6 +5,7 @@ using UnityEngine;
 
 public enum PoolType
 {
+    NAVMESH,
     CENTRAL_UNIT,
     GATHERING_UNIT,
 }

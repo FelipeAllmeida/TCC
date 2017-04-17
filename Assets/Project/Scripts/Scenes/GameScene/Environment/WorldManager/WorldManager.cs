@@ -19,12 +19,12 @@ public class WorldManager : MonoBehaviour
     private int _worldLenght;
     #endregion
 
-
-    public void Initialize(int p_width, int p_lenght)
+    public void Initialize(int p_width, int p_height, int p_lenght)
     {
         _worldWidth = p_width;
         _worldLenght = p_lenght;
         _dictWorldTiles = new Dictionary<int, TileFloor>();
+        int __nextFloorPositionY = 0;
         for (int i = 0; i < _constMaxWorldHeight; i++)
         {
             GameObject __floor = new GameObject("Flor " + i);
@@ -38,27 +38,20 @@ public class WorldManager : MonoBehaviour
                     __arrayFloorTiles[i, j] = null;
                 }
             }
-            __floor.GetComponent<TileFloor>().Initialize(i, __arrayFloorTiles);
+            __floor.GetComponent<TileFloor>().Initialize(i, __nextFloorPositionY, __arrayFloorTiles);
             _dictWorldTiles.Add(i, __floor.GetComponent<TileFloor>());
+            __nextFloorPositionY += 3;
         }
     }
 
     public void BuildWorld()
     {
-        return;
         for (int i = 0; i < _worldWidth;i++)
         {
             for (int j = 0; j < _worldLenght;j++)
             {
-                _dictWorldTiles[0].SetTile(i, j, CreateTile(_dictWorldTiles[0].transform));
+                _dictWorldTiles[0].SetTile(TyleType.GROUND_TEST, i, j);
             }
         }
-    }
-
-    private Tile CreateTile(Transform p_floorTransform)
-    {
-        Tile __tile = (Tile)Instantiate(tile, p_floorTransform).GetComponent<Tile>();
-        __tile.gameObject.transform.eulerAngles = new Vector3(90f, 0f, 0f);
-        return __tile;
     }
 }
