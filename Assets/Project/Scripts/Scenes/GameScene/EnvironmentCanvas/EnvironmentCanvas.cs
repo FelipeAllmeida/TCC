@@ -2,15 +2,36 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnvironmentCanvas : MonoBehaviour {
+public class EnvironmentCanvas : MonoBehaviour 
+{
+    #region Private Serialized-Data
+    [SerializeField] private Interface _interface;
+    #endregion
 
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+    public void AInitialize()
+    {
+        _interface.AInitialize();
+    }
+
+    public void AUpdate()
+    {
+        _interface.AUpdate();
+    }
+
+    public void Enable()
+    {
+        gameObject.SetActive(true);
+    }
+
+    public void Disable()
+    {
+        gameObject.SetActive(false);
+    }
+
+    #region Interface
+    public void SetInterfaceSelectedUnit(Unit p_unit)
+    {
+        _interface.SetSelectedUnit(p_unit);
+    }
+    #endregion
 }

@@ -15,12 +15,23 @@ public class GameScene : State<TCC.StateType>
     {
         _cameraManager.Initialize(new Vector3(100f, 8f, 100f));
         _environment.AInitialize();
+        _environmentCanvas.AInitialize();
+        ListenEnvironmentEvents();
+    }
+
+    private void ListenEnvironmentEvents()
+    {
+        _environment.onRequestSetInterfaceSelectedUnit += delegate (Unit p_unit)
+        {
+            _environmentCanvas.SetInterfaceSelectedUnit(p_unit);
+        };
     }
 
     public override void AUpdate()
     {        
         _cameraManager.UpdateMainCameraPosition();
         _environment.AUpdate();
+        _environmentCanvas.AUpdate();
     }
 
     public override void Enable()

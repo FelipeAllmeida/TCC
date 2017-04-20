@@ -73,7 +73,7 @@ public abstract class Unit : MonoBehaviour
         return _navMeshAgent;
     }
 
-    public virtual UnitMovementType GetUnitType()
+    public virtual UnitMovementType GetUnitMovementType()
     {
         return _unitMovementType;
     }

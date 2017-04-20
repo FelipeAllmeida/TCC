@@ -1,9 +1,14 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Environment : MonoBehaviour 
 {
+    #region Event Data
+    public event Action<Unit> onRequestSetInterfaceSelectedUnit;
+    #endregion
+
     #region Private Serialized-Data
     [SerializeField] private WorldManager _worldManager;
     #endregion
@@ -33,8 +38,9 @@ public class Environment : MonoBehaviour
 
     private void InitializeMainPlayerEvents()
     {
-        _dictPlayers[_mainPlayer].onRequestShowSelectUnitUI += delegate
+        _dictPlayers[_mainPlayer].onRequestShowSelectUnitUI += delegate (Unit p_unit)
         {
+            if (onRequestSetInterfaceSelectedUnit != null) onRequestSetInterfaceSelectedUnit(p_unit);
         };
     }
 
@@ -66,7 +72,6 @@ public class Environment : MonoBehaviour
     public void Enable()
     {
         gameObject.SetActive(true);
-        // _worldManager.Initialize (20, 20);
         _worldManager.BuildWorld();
     }
 
