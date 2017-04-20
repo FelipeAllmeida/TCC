@@ -13,14 +13,7 @@ public class MoveCommand : Command
     public override CommandType Execute()
     {
         _previousPosition = _actor.transform.position;
-        if (_actor.GetUnitType() == UnitMovementType.GROUND)
-        {
-            _actor.GetNavMeshAgent().destination = _targetPosition;
-        }
-        else if (_actor.GetUnitType() == UnitMovementType.AIR)
-        {
-
-        }
+        _actor.GetNavMeshAgent().destination = _targetPosition;
         return CommandType.MOVE;
     }
 
@@ -32,14 +25,7 @@ public class MoveCommand : Command
 
     public override void Undo()
     {
-        if (_actor.GetUnitType() == UnitMovementType.GROUND)
-        {
-            _actor.GetNavMeshAgent().destination = _previousPosition;
-        }
-        else if (_actor.GetUnitType() == UnitMovementType.AIR)
-        {
-
-        }
+        _actor.GetNavMeshAgent().destination = _previousPosition;
     }
 
     private Unit _actor;

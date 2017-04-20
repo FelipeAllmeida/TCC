@@ -1,9 +1,14 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Player 
 {
+    #region Event Data
+    public event Action<Unit> onRequestShowSelectUnitUI;
+    #endregion
+
     #region Private Data
     private int _team;
     private Unit _currentSelectedUnit;
@@ -13,7 +18,7 @@ public class Player
     public void HandleMouseLeftClick(InputInfo p_inputInfo)
     {
         _currentSelectedUnit = p_inputInfo.hit;
-        Debug.Log("_currentSelectedUnit IS NULL: " + ((_currentSelectedUnit == null) ? "yes" : "false"));
+        if (onRequestShowSelectUnitUI != null) onRequestShowSelectUnitUI(_currentSelectedUnit);
     }
 
     public void HandleMouseRightClick(InputInfo p_inputInfo)

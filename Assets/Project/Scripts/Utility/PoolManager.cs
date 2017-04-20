@@ -8,73 +8,97 @@ public enum PoolType
     NAVMESH,
     CENTRAL_UNIT,
     GATHERING_UNIT,
+    DYNAMIC_ACTION_BUTTON
 }
 
 [Serializable]
-public class PoolPrefab
+public class PoolData
 {
     public PoolType poolType;
     public GameObject prefab;
+    [HideInInspector] public GameObject prefabParent;
 }
 
 public class PoolManager : MonoBehaviour 
 {
     #region Singleton
-    private PoolManager _instance;
-    public PoolManager instance
+    private static PoolManager _instance;
+    public static PoolManager instance
     {
         get
         {
             if (_instance == null)
             {
-                _instance = gameObject.GetComponent<PoolManager>();
-                _instance.Initialize();
-                DontDestroyOnLoad(gameObject);
+                return InstanceInitialize();
             }
-            return _instance;
+            else
+            {
+                return _instance;
+            }
         }
+    }
+
+    private static PoolManager InstanceInitialize()
+    {
+        GameObject __poolManagerObject = (GameObject)Resources.Load("PoolManager");
+
+        _instance = __poolManagerObject.GetComponent<PoolManager>();
+        _instance.Initialize();
+
+        return _instance;
     }
     #endregion
 
     #region Serialized Field Data
-    [SerializeField] private List<PoolPrefab> _listPoolPrefabs = new List<PoolPrefab>();
+    [SerializeField] private List<PoolData> _listPoolData = new List<PoolData>();
     #endregion
 
     #region Private Data
-    private Dictionary<PoolType, List<GameObject>> _dictPoolInstances;
+    private Dictionary<PoolType, PoolData> _dictPoolInstances;
+    private GameObject _parent;
     #endregion
 
     public void Initialize()
     {
-        _dictPoolInstances = new Dictionary<PoolType, List<GameObject>>();
-        foreach (PoolType __poolType in Enum.GetValues(typeof(PoolType)))
+        if (_parent == null)
         {
-            List<GameObject> __listGameObject = new List<GameObject>();
-            _dictPoolInstances.Add(__poolType, __listGameObject);
-            GameObject __go = new GameObject(__poolType.ToString());
-            __go.transform.SetParent(transform);
+            _parent = new GameObject("PoolManager");
+        }
+        _dictPoolInstances = new Dictionary<PoolType, PoolData>();
+        for (int i = 0;i < _listPoolData.Count;i++)
+        {
+            PoolData __poolData = _listPoolData[i];
+            __poolData.prefabParent = new GameObject(__poolData.poolType.ToString());
+            __poolData.prefabParent.transform.SetParent(_parent.transform);
+           _dictPoolInstances.Add(__poolData.poolType, __poolData);
         }
     }
 
     public GameObject Spawn(PoolType p_poolType)
     {
-        if (_dictPoolInstances[p_poolType].Count == 0)
+        return Spawn(p_poolType, Vector3.zero);
+    }
+
+    public GameObject Spawn(PoolType p_poolType, Vector3 p_position)
+    {
+        if (_dictPoolInstances[p_poolType].prefabParent.transform.childCount == 0)
         {
-            return Instantiate(_listPoolPrefabs.Find(x => x.poolType == p_poolType).prefab);
+            return Instantiate(_dictPoolInstances[p_poolType].prefab);
         }
         else
         {
-            GameObject __go = _dictPoolInstances[p_poolType][0];
+            GameObject __go = _dictPoolInstances[p_poolType].prefabParent.transform.GetChild(0).gameObject;
+            __go.transform.SetParent(null);
+            __go.transform.localPosition = p_position;
             __go.SetActive(true);
-            _dictPoolInstances[p_poolType].RemoveAt(0);
             return __go;
         }
     }
 
     public void Despawn(PoolType p_poolType, GameObject p_gameObject)
     {
-        _dictPoolInstances[p_poolType].Add(p_gameObject);
+        p_gameObject.transform.position = new Vector3(1000f, 1000f, 1000f);
+        p_gameObject.transform.SetParent(_dictPoolInstances[p_poolType].prefabParent.transform);
         p_gameObject.SetActive(false);
-        p_gameObject.transform.position = new Vector3(10000f, 10000f, 10000f);
     }
 }

@@ -77,5 +77,10 @@ public abstract class Unit : MonoBehaviour
     {
         return _unitMovementType;
     }
+
+    public virtual List<CommandType> GetListAvaiableCommands()
+    {
+        return _commandController.GetListAvaiableCommands();
+    }
 }
 

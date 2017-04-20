@@ -12,7 +12,7 @@ public enum CommandType
 public class CommandController : MonoBehaviour 
 {
     #region Private-Serialize Data
-    private List<CommandType> _listCommandType;
+    [SerializeField] private List<CommandType> _listCommandType;
     #endregion
 
     private CommandType _currentCommand;
@@ -32,5 +32,10 @@ public class CommandController : MonoBehaviour
     {
         _command.Stop();
         _currentCommand = CommandType.NONE;
+    }
+
+    public List<CommandType> GetListAvaiableCommands()
+    {
+        return _listCommandType;
     }
 }

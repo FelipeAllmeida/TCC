@@ -31,31 +31,32 @@ public class CameraManager : MonoBehaviour
         _worldDimensions = p_worldDimensions;
     }
 
-    public void UpdateMainCameraPosition(Vector2 p_mousePosition)
+    public void UpdateMainCameraPosition()
     {
+        Vector2 __mousePosition = Input.mousePosition;
         float __screenWidth = Screen.width;
         float __screenHeight = Screen.height;
 
         bool __hasChange = false;
 
         Vector3 __newCameraPosition = _mainCamera.transform.position;
-        if (p_mousePosition.x < __screenWidth * 0.05f)
+        if (__mousePosition.x < __screenWidth * 0.05f)
         {
             __newCameraPosition += new Vector3(- _constCameraSpeedSensitivity, 0f, 0f);
             __hasChange = true;
         }
-        else if (p_mousePosition.x > __screenWidth * 0.95f)
+        else if (__mousePosition.x > __screenWidth * 0.95f)
         {
             __newCameraPosition += new Vector3(_constCameraSpeedSensitivity, 0f, 0f);
             __hasChange = true;
         }
 
-        if (p_mousePosition.y < __screenHeight * 0.05f)
+        if (__mousePosition.y < __screenHeight * 0.05f)
         {
             __newCameraPosition += new Vector3(0f, 0f, - _constCameraSpeedSensitivity);
             __hasChange = true;
         }
-        else if (p_mousePosition.y > __screenHeight * 0.95f)
+        else if (__mousePosition.y > __screenHeight * 0.95f)
         {
             __newCameraPosition += new Vector3(0f, 0f, _constCameraSpeedSensitivity);
             __hasChange = true;
