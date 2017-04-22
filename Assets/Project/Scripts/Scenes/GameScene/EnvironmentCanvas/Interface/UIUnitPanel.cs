@@ -24,6 +24,7 @@ public abstract class UIUnitPanel : UIPanel
 
     public virtual void SetSelectedUnit(Unit p_unit)
     {
+        if (_selectedUnit == p_unit) return;
         _selectedUnit = p_unit;
         _currentUnitPanelState = UIUnitPanelStateType.UNIT_SELECTED;
     }

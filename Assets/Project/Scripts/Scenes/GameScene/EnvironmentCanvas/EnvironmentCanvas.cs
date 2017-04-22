@@ -8,9 +8,15 @@ public class EnvironmentCanvas : MonoBehaviour
     [SerializeField] private Interface _interface;
     #endregion
 
+    #region Private Data
+    private Vector2 _canvasDimensions;
+    #endregion
+
     public void AInitialize()
     {
         _interface.AInitialize();
+        Debug.Log(GetComponent<RectTransform>().sizeDelta);
+        Debug.Log(GetComponent<RectTransform>().rect.width + " | " + GetComponent<RectTransform>().rect.height);
     }
 
     public void AUpdate()

@@ -12,7 +12,7 @@ public class DynamicActionButton : MonoBehaviour
     [SerializeField] private Image _backgroundImage;
 
     [Header("Button")]
-    private Button _button;
+    [SerializeField] private Button _button;
     #endregion
 
     #region Event Data

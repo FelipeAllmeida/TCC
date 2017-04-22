@@ -74,21 +74,21 @@ public class PoolManager : MonoBehaviour
         }
     }
 
-    public GameObject Spawn(PoolType p_poolType)
+    public GameObject Spawn(PoolType p_poolType, Transform p_parent = null)
     {
-        return Spawn(p_poolType, Vector3.zero);
+        return Spawn(p_poolType, Vector3.zero, p_parent);
     }
 
-    public GameObject Spawn(PoolType p_poolType, Vector3 p_position)
+    public GameObject Spawn(PoolType p_poolType, Vector3 p_position, Transform p_parent = null)
     {
         if (_dictPoolInstances[p_poolType].prefabParent.transform.childCount == 0)
         {
-            return Instantiate(_dictPoolInstances[p_poolType].prefab);
+            return Instantiate(_dictPoolInstances[p_poolType].prefab, p_parent);
         }
         else
         {
             GameObject __go = _dictPoolInstances[p_poolType].prefabParent.transform.GetChild(0).gameObject;
-            __go.transform.SetParent(null);
+            __go.transform.SetParent(p_parent);
             __go.transform.localPosition = p_position;
             __go.SetActive(true);
             return __go;

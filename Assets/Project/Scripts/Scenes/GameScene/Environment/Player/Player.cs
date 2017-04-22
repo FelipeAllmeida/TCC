@@ -18,6 +18,7 @@ public class Player
     public void HandleMouseLeftClick(InputInfo p_inputInfo)
     {
         _currentSelectedUnit = p_inputInfo.hit;
+
         if (onRequestShowSelectUnitUI != null) onRequestShowSelectUnitUI(_currentSelectedUnit);
     }
 
