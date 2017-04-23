@@ -4,22 +4,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using Framework;
 
-public enum UnitCenterStateType
-{
-    UPGRADING_STRUCTURE,
-    PRODUCING_UNIT,
-    NONE
-}
+
 
 public class UnitCenter : Unit
 {
     #region Private Data
-    private UnitCenterStateType _currentState = UnitCenterStateType.NONE;
+    private UnitBuildingStateType _currentState = UnitBuildingStateType.NONE;
 
     private TimerNodule _currentUnitCreationNodule;
-    private List<UnitType> _listUnitsToSpawn = new List<UnitType>();
-
-    
+    private List<UnitType> _listUnitsToSpawn = new List<UnitType>();    
     #endregion
 
     public override void Initialize(int p_unitID, int p_unitTeam)

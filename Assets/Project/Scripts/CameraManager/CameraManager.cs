@@ -40,23 +40,23 @@ public class CameraManager : MonoBehaviour
         bool __hasChange = false;
 
         Vector3 __newCameraPosition = _mainCamera.transform.position;
-        if (__mousePosition.x < __screenWidth * 0.05f)
+        if (__mousePosition.x < __screenWidth * 0.05f && __mousePosition.x > 0f)
         {
             __newCameraPosition += new Vector3(- _constCameraSpeedSensitivity, 0f, 0f);
             __hasChange = true;
         }
-        else if (__mousePosition.x > __screenWidth * 0.95f)
+        else if (__mousePosition.x > __screenWidth * 0.95f && __mousePosition.x < __screenWidth)
         {
             __newCameraPosition += new Vector3(_constCameraSpeedSensitivity, 0f, 0f);
             __hasChange = true;
         }
 
-        if (__mousePosition.y < __screenHeight * 0.05f)
+        if (__mousePosition.y < __screenHeight * 0.05f && __mousePosition.y > 0f)
         {
             __newCameraPosition += new Vector3(0f, 0f, - _constCameraSpeedSensitivity);
             __hasChange = true;
         }
-        else if (__mousePosition.y > __screenHeight * 0.95f)
+        else if (__mousePosition.y > __screenHeight * 0.95f && __mousePosition.y < __screenHeight)
         {
             __newCameraPosition += new Vector3(0f, 0f, _constCameraSpeedSensitivity);
             __hasChange = true;

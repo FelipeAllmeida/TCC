@@ -12,13 +12,16 @@ public class UnitSelectionPanel : UIUnitPanel
 
     #region Private Data
     private List<DynamicActionButton> _listDynamicActionButtons;
+
     private Vector2 _dimensions;
+    private Vector2 _actionButtonDimensions = new Vector2(35f, 35f);
     #endregion
 
     public override void Initialize()
     {
         base.Initialize();
         _dimensions = GetPanelDimensions();
+        CalculateAndSetDynamicActionButtonsPositions();
     }
 
     public override void Enable()
@@ -33,14 +36,21 @@ public class UnitSelectionPanel : UIUnitPanel
 
     public override void SetSelectedUnit(Unit p_unit)
     {
-        base.SetSelectedUnit(p_unit);
         if (_selectedUnit == p_unit) return;
-        InitializeDynamicActionButtons();
+        if (p_unit != null)
+        {
+            base.SetSelectedUnit(p_unit);
+            InitializeDynamicActionButtons();
+        }
+        else
+        {
+            DeselectUnit();
+        }
     }
 
     public override void DeselectUnit()
     {
-        ClearDynamicActionButtonsList();
+        DisableAllDynamicActionButtons();
         base.DeselectUnit();
     }
 
@@ -49,28 +59,69 @@ public class UnitSelectionPanel : UIUnitPanel
         return new Vector2(_background.GetComponent<RectTransform>().rect.width, _background.GetComponent<RectTransform>().rect.height);
     }
 
-    private void InitializeDynamicActionButtons()
+    private void CalculateAndSetDynamicActionButtonsPositions()
     {
-        Debug.Log("InitializeDynamicActionButtons");
         _listDynamicActionButtons = new List<DynamicActionButton>();
-        List<CommandType> _listUnitCommands = _selectedUnit.GetListAvaiableCommands();
+        float __width = _dimensions.x;
+        float __height = _dimensions.y;
 
-        for (int i = 0;i < _listUnitCommands.Count;i++)
+        float __widthOffset = __width * 0.1f;
+        float __heightOffset = __height * 0.1f;
+
+       
+
+        int __buttonsAxisX = Mathf.FloorToInt(__width / (_actionButtonDimensions.x + __widthOffset));
+        int __buttonsAxisY = Mathf.FloorToInt(__height / (_actionButtonDimensions.y + __heightOffset));
+
+        Debug.Log("__width: " + __width);
+        Debug.Log("__height: " + __height);
+
+        Debug.Log("__widthOffset: " + __widthOffset);
+        Debug.Log("__heightOffset: " + __heightOffset);
+
+        Debug.Log(__buttonsAxisX + " | " + __buttonsAxisY);
+        for (int i = 0; i < __buttonsAxisX + 1; i++)
         {
-            DynamicActionButton __actionButton = PoolManager.instance.Spawn(PoolType.DYNAMIC_ACTION_BUTTON, transform).GetComponent<DynamicActionButton>();
-            __actionButton.Initialize(_listUnitCommands[i]);
-            __actionButton.onClick += HandleOnActionButtonClick;
-            //__actionButton.GetComponent<RectTransform>().anchoredPosition = new Vector2()
-            _listDynamicActionButtons.Add(__actionButton);
+            for (int j = 0; j < __buttonsAxisY + 1; j++)
+            {
+                DynamicActionButton __actionButton = PoolManager.instance.Spawn(PoolType.DYNAMIC_ACTION_BUTTON, transform).GetComponent<DynamicActionButton>();
+                __actionButton.Enable(false);
+                __actionButton.onClick += HandleOnActionButtonClick;
+
+                float __buttonPosX = _background.GetComponent<RectTransform>().rect.min.x + (__widthOffset + _actionButtonDimensions.x / 2f) * (i + 1f);
+                float __buttonPosY = _background.GetComponent<RectTransform>().rect.max.y - (__heightOffset + _actionButtonDimensions.y / 2f) * (j + 1f);
+                Vector2 __buttonPos = new Vector2(__buttonPosX, __buttonPosY);
+                Debug.Log("__buttonPos: " + __buttonPos);
+                 
+                __actionButton.GetRectTransform().anchoredPosition = __buttonPos;
+                _listDynamicActionButtons.Add(__actionButton);
+            }
         }
     }
 
-    private void ClearDynamicActionButtonsList()
+    private void InitializeDynamicActionButtons()
+    {
+        List<CommandType> __listCommands = _selectedUnit.GetListAvaiableCommands();
+        for (int i = 0; i < _listDynamicActionButtons.Count; i++)
+        {
+            if (i < __listCommands.Count)
+            {
+                _listDynamicActionButtons[i].ChangeButtonCommandType(__listCommands[i]);
+                _listDynamicActionButtons[i].onClick += HandleOnActionButtonClick;
+                _listDynamicActionButtons[i].Enable(true);
+            }
+            else
+            {
+                _listDynamicActionButtons[i].Enable(false);
+            }
+        }
+    }
+
+    private void DisableAllDynamicActionButtons()
     {
         for (int i = 0;i < _listDynamicActionButtons.Count;i++)
         {
-            _listDynamicActionButtons[i].ResetButton();
-            PoolManager.instance.Despawn(PoolType.DYNAMIC_ACTION_BUTTON, _listDynamicActionButtons[i].gameObject);
+            _listDynamicActionButtons[i].Enable(false);
         }
     }
 

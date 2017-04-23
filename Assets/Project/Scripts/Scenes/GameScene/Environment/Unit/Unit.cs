@@ -19,6 +19,18 @@ public enum UnitType
     GATHERING_UNIT
 }
 
+public enum UnitBuildingStateType
+{
+    UPGRADING_STRUCTURE,
+    PRODUCING_UNIT,
+    NONE
+}
+
+public enum UnitTroopStateType
+{
+
+}
+
 public abstract class Unit : MonoBehaviour 
 {
     #region Protected Data

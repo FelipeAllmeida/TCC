@@ -13,7 +13,12 @@ public class DynamicActionButton : MonoBehaviour
 
     [Header("Button")]
     [SerializeField] private Button _button;
+
+    [Header("Transform")]
+    [SerializeField] private RectTransform _rectTransform;
     #endregion
+
+
 
     #region Event Data
     public event Action<CommandType> onClick;
@@ -23,7 +28,7 @@ public class DynamicActionButton : MonoBehaviour
     private CommandType _commandType;
     #endregion
 
-    public void Initialize(CommandType p_commandType)
+    public void ChangeButtonCommandType(CommandType p_commandType)
     {
         _commandType = p_commandType;
         _button.onClick.AddListener(delegate
@@ -33,8 +38,18 @@ public class DynamicActionButton : MonoBehaviour
         });
     }
 
+    public void Enable(bool p_isEnabled)
+    {
+        gameObject.SetActive(p_isEnabled);
+    }
+
     public void ResetButton()
     {
         _button.onClick.RemoveAllListeners();
+    }
+
+    public RectTransform GetRectTransform()
+    {
+        return _rectTransform;
     }
 }

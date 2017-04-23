@@ -2,15 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class UnitTroop : MonoBehaviour {
-
-	// Use this for initialization
-	void Start () {
-		
-	}
+public class UnitTroop : Unit 
+{
 	
-	// Update is called once per frame
-	void Update () {
-		
-	}
 }
