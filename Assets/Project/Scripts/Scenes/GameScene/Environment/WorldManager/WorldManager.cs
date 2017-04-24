@@ -4,16 +4,12 @@ using UnityEngine;
 
 public class WorldManager : MonoBehaviour 
 {
-    #region REMOVE
-    public GameObject tile;
-    #endregion
-
     #region Const Data
     private const int _constMaxWorldHeight = 7;
     #endregion
 
     #region Private Data
-    private Dictionary<int, TileFloor> _dictWorldTiles;
+    private static Dictionary<int, TileFloor> _dictWorldTiles;
 
     private int _worldWidth;
     private int _worldLenght;
@@ -27,7 +23,7 @@ public class WorldManager : MonoBehaviour
         int __nextFloorPositionY = 0;
         for (int i = 0; i < _constMaxWorldHeight; i++)
         {
-            GameObject __floor = new GameObject("Flor " + i);
+            GameObject __floor = new GameObject("Floor " + i);
             __floor.AddComponent<TileFloor>();
             __floor.transform.SetParent(this.transform);
             Tile[,] __arrayFloorTiles = new Tile[_worldWidth, _worldLenght];
@@ -52,6 +48,14 @@ public class WorldManager : MonoBehaviour
             {
                 _dictWorldTiles[0].SetTile(TyleType.GROUND_TEST, i, j);
             }
+        }
+    }
+
+    public static void AddEntityToFloor(int p_floor, Entity p_entity)
+    {
+        if (_dictWorldTiles.ContainsKey(p_floor) == true)
+        {
+            _dictWorldTiles[p_floor].AddEntityToFloor(p_entity);
         }
     }
 }

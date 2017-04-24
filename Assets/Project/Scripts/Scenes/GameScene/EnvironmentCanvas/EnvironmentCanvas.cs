@@ -1,9 +1,14 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class EnvironmentCanvas : MonoBehaviour 
 {
+    #region Events
+    public event Action<int, CommandType, object[]> onClickInterfaceCommand;
+    #endregion
+
     #region Private Serialized-Data
     [SerializeField] private Interface _interface;
     #endregion
@@ -14,9 +19,18 @@ public class EnvironmentCanvas : MonoBehaviour
 
     public void AInitialize()
     {
+        InitializeInterface();
+       //Debug.Log(GetComponent<RectTransform>().sizeDelta);
+       // Debug.Log(GetComponent<RectTransform>().rect.width + " | " + GetComponent<RectTransform>().rect.height);
+    }
+
+    private void InitializeInterface()
+    {
         _interface.AInitialize();
-        Debug.Log(GetComponent<RectTransform>().sizeDelta);
-        Debug.Log(GetComponent<RectTransform>().rect.width + " | " + GetComponent<RectTransform>().rect.height);
+        _interface.onClickCommand += delegate (int p_entityID, CommandType p_commandType, object[] p_args)
+        {
+            if (onClickInterfaceCommand != null) onClickInterfaceCommand(p_entityID, p_commandType, p_args);
+        };
     }
 
     public void AUpdate()
@@ -35,7 +49,7 @@ public class EnvironmentCanvas : MonoBehaviour
     }
 
     #region Interface
-    public void SetInterfaceSelectedUnit(Unit p_unit)
+    public void SetInterfaceSelectedUnit(Entity p_unit)
     {
         _interface.SetSelectedUnit(p_unit);
     }

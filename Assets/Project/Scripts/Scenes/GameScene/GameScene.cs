@@ -21,9 +21,14 @@ public class GameScene : State<TCC.StateType>
 
     private void ListenEnvironmentEvents()
     {
-        _environment.onRequestSetInterfaceSelectedUnit += delegate (Unit p_unit)
+        _environment.onRequestSetInterfaceSelectedUnit += delegate (Entity p_unit)
         {
             _environmentCanvas.SetInterfaceSelectedUnit(p_unit);
+        };
+
+        _environmentCanvas.onClickInterfaceCommand += delegate (int p_entityID, CommandType p_commandType, object[] p_args)
+        {
+            _environment.OnExecuteMainPlayerTargetUnitCommand(p_entityID, p_commandType, p_args);
         };
     }
 

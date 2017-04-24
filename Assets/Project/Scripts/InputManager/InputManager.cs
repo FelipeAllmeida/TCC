@@ -18,7 +18,7 @@ public enum GesturePhaseType
 
 public class InputInfo
 {
-    public Unit hit;
+    public Entity hit;
     public Vector3 worldClickPoint;
     public Vector3 screenClickPoint;
 }
@@ -100,14 +100,17 @@ public class InputManager
         }
         else if (p_phase == GesturePhaseType.UPDATE)
         {
+            Debug.DrawRay(Camera.main.transform.position, Camera.main.transform.TransformDirection(Input.mousePosition), Color.red, 0.25f);
             UpdateInputInfo(p_inputID);
         }
         else if (p_phase == GesturePhaseType.START)
         {
             if (_dictInputs.ContainsKey(p_inputID) == false)
             {
-                InputInfo __inputInfo = CreateInputInfo();
+                bool _isAllowedLayer;
+                InputInfo __inputInfo = CreateInputInfo(out _isAllowedLayer);
                 _dictInputs.Add(p_inputID, __inputInfo);
+                if (_isAllowedLayer == false) return;
                 if (p_inputID == 0)
                 {
                     if (onMouseLeftClick != null) onMouseLeftClick(__inputInfo);
@@ -120,14 +123,22 @@ public class InputManager
         }
     }
 
-    private InputInfo CreateInputInfo()
+    private InputInfo CreateInputInfo(out bool p_isAllowedInput)
     {
+        p_isAllowedInput = false;
         InputInfo __inputInfo = new InputInfo();
         RaycastHit __raycastHit = new RaycastHit();
         Ray __ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        
         if (Physics.Raycast(__ray, out __raycastHit, 1000))
         {
-            __inputInfo.hit = __raycastHit.collider.gameObject.GetComponent<Unit>();
+            Debug.Log(__raycastHit.collider.gameObject.name + " | " + __raycastHit.collider.gameObject.layer);
+            if (__raycastHit.collider.gameObject.layer == 0 || __raycastHit.collider.gameObject.layer == 9)
+            {
+                p_isAllowedInput = true;
+            }
+
+            __inputInfo.hit = __raycastHit.collider.gameObject.GetComponent<Entity>();
             __inputInfo.worldClickPoint = __raycastHit.point;
             __inputInfo.worldClickPoint.y = _currentFloor;
             __inputInfo.screenClickPoint = Input.mousePosition;

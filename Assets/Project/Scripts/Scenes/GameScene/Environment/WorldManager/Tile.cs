@@ -24,7 +24,7 @@ public class Tile
     private float _width;
     private float _height;
 
-    public bool IsUnitInsideTile(Unit p_unit)
+    public bool IsUnitInsideTile(Entity p_unit)
     {
         return false;
     }

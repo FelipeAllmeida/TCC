@@ -13,7 +13,7 @@ public abstract class UIUnitPanel : UIPanel
    
     #region Protected Data
     protected UIUnitPanelStateType _currentUnitPanelState;
-    protected Unit _selectedUnit;
+    protected Entity _selectedUnit;
     #endregion
 
     public override void Initialize()
@@ -22,7 +22,7 @@ public abstract class UIUnitPanel : UIPanel
         _currentUnitPanelState = UIUnitPanelStateType.NO_UNIT_SELECTED;
     }
 
-    public virtual void SetSelectedUnit(Unit p_unit)
+    public virtual void SetSelectedUnit(Entity p_unit)
     {
         if (_selectedUnit == p_unit) return;
         _selectedUnit = p_unit;

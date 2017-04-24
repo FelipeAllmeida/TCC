@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class MoveCommand : Command 
 {
-    public MoveCommand(Unit p_actor, Vector3 p_targetPosition)
+    public MoveCommand(Entity p_actor, Vector3 p_targetPosition)
     {
         _actor = p_actor;
         _targetPosition = p_targetPosition;
@@ -28,7 +28,7 @@ public class MoveCommand : Command
         _actor.GetNavMeshAgent().destination = _previousPosition;
     }
 
-    private Unit _actor;
+    private Entity _actor;
 
     private Vector3 _previousPosition;
     private Vector3 _targetPosition;

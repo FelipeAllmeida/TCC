@@ -25,4 +25,9 @@ public class TileFloor : MonoBehaviour
     {
         return _arrayFloorTiles[p_x, p_y];
     }
+
+    public void AddEntityToFloor(Entity p_entity)
+    {
+        p_entity.transform.SetParent(transform);
+    }
 }

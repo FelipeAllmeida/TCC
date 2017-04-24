@@ -6,7 +6,7 @@ using UnityEngine;
 public class Environment : MonoBehaviour 
 {
     #region Event Data
-    public event Action<Unit> onRequestSetInterfaceSelectedUnit;
+    public event Action<Entity> onRequestSetInterfaceSelectedUnit;
     #endregion
 
     #region Private Serialized-Data
@@ -21,6 +21,7 @@ public class Environment : MonoBehaviour
 
     public void AInitialize()
     {
+        _worldManager.Initialize(1000, 7, 1000);
         InitializeInputManager();
         InitializeDictPlayers();
     }
@@ -29,16 +30,15 @@ public class Environment : MonoBehaviour
     private void InitializeDictPlayers()
     {
         _dictPlayers.Add(_mainPlayer, new Player());
-        UnitCenter __unitCenter = PoolManager.instance.Spawn(PoolType.CENTRAL_UNIT).GetComponent<UnitCenter>();
-        __unitCenter.Initialize(0, 0);
         InitializeMainPlayerEvents();
+        _dictPlayers[_mainPlayer].Initialize(_mainPlayer, Vector3.zero);
     }
 
     #endregion
 
     private void InitializeMainPlayerEvents()
     {
-        _dictPlayers[_mainPlayer].onRequestShowSelectUnitUI += delegate (Unit p_unit)
+        _dictPlayers[_mainPlayer].onRequestShowSelectUnitUI += delegate (Entity p_unit)
         {
             if (onRequestSetInterfaceSelectedUnit != null) onRequestSetInterfaceSelectedUnit(p_unit);
         };
@@ -62,6 +62,11 @@ public class Environment : MonoBehaviour
                 _dictPlayers[_mainPlayer].HandleMouseRightClick(p_inputInfo);
             }
         };
+    }
+
+    public void OnExecuteMainPlayerTargetUnitCommand(int p_entityID, CommandType p_commandType, params object[] p_args)
+    {
+        _dictPlayers[_mainPlayer].ExecuteTargetUnitCommnad(p_entityID, p_commandType, p_args);
     }
 
     public void AUpdate()

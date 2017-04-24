@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -6,6 +7,10 @@ using UnityEngine.UI;
 
 public class UnitSelectionPanel : UIUnitPanel 
 {
+    #region Events
+    public event Action<int, CommandType, object[]> onClickCommand; 
+    #endregion
+
     #region Private Serialized-Data
     [SerializeField] private Image _background;
     #endregion
@@ -34,7 +39,7 @@ public class UnitSelectionPanel : UIUnitPanel
         base.Disable();
     }
 
-    public override void SetSelectedUnit(Unit p_unit)
+    public override void SetSelectedUnit(Entity p_unit)
     {
         if (_selectedUnit == p_unit) return;
         if (p_unit != null)
@@ -72,14 +77,7 @@ public class UnitSelectionPanel : UIUnitPanel
 
         int __buttonsAxisX = Mathf.FloorToInt(__width / (_actionButtonDimensions.x + __widthOffset));
         int __buttonsAxisY = Mathf.FloorToInt(__height / (_actionButtonDimensions.y + __heightOffset));
-
-        Debug.Log("__width: " + __width);
-        Debug.Log("__height: " + __height);
-
-        Debug.Log("__widthOffset: " + __widthOffset);
-        Debug.Log("__heightOffset: " + __heightOffset);
-
-        Debug.Log(__buttonsAxisX + " | " + __buttonsAxisY);
+        
         for (int i = 0; i < __buttonsAxisX + 1; i++)
         {
             for (int j = 0; j < __buttonsAxisY + 1; j++)
@@ -91,7 +89,7 @@ public class UnitSelectionPanel : UIUnitPanel
                 float __buttonPosX = _background.GetComponent<RectTransform>().rect.min.x + (__widthOffset + _actionButtonDimensions.x / 2f) * (i + 1f);
                 float __buttonPosY = _background.GetComponent<RectTransform>().rect.max.y - (__heightOffset + _actionButtonDimensions.y / 2f) * (j + 1f);
                 Vector2 __buttonPos = new Vector2(__buttonPosX, __buttonPosY);
-                Debug.Log("__buttonPos: " + __buttonPos);
+
                  
                 __actionButton.GetRectTransform().anchoredPosition = __buttonPos;
                 _listDynamicActionButtons.Add(__actionButton);
@@ -127,12 +125,13 @@ public class UnitSelectionPanel : UIUnitPanel
 
     private void HandleOnActionButtonClick(CommandType p_commandType)
     {
-        switch (p_commandType)
-        {
-            case CommandType.BUILD:
-                break;
-            case CommandType.MOVE:
-                break;
-        }
+        if (onClickCommand != null) onClickCommand(_selectedUnit.GetEntityID(), p_commandType, null);
+        //switch (p_commandType)
+        //{
+        //    case CommandType.BUILD:
+        //        break;
+        //    case CommandType.MOVE:
+        //        break;
+        //}
     }
 }

@@ -19,7 +19,7 @@ public class CommandController : MonoBehaviour
 
     private Command _command;
 
-    public void MoveTo(Unit p_actor, Vector3 p_targetPosition)
+    public void MoveTo(Entity p_actor, Vector3 p_targetPosition)
     {
         if (_listCommandType.Contains(CommandType.MOVE) == true)
         {
