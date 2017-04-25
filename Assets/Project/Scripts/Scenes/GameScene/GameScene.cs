@@ -10,7 +10,11 @@ public class GameScene : State<TCC.StateType>
     [SerializeField] private Environment _environment;
     [SerializeField] private EnvironmentCanvas _environmentCanvas;
     #endregion
+
+    #region Private Data
     
+    #endregion
+
     public override void AInitialize()
     {
         _cameraManager.Initialize(new Vector3(100f, 8f, 100f));
