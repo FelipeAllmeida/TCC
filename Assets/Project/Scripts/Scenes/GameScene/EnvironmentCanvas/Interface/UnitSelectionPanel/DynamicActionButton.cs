@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class DynamicActionButton : MonoBehaviour 
+public class DynamicActionButton : MonoBehaviour
 {
     #region Private Serialized-Data
     [Header("Images")]
@@ -25,22 +25,30 @@ public class DynamicActionButton : MonoBehaviour
     #endregion
 
     #region Private Data
-    private Enum _enumType;
+    private Enum _actionType;
     #endregion
 
-    public void ChangeButtonCommandType(Enum p_enumType)
+    public void ChangeButtonCommandType(Enum p_actionType)
     {
-        _enumType = p_enumType;
+        Debug.Log("ChangeButtonCommandType: " + p_actionType);
+        _actionType = p_actionType;
+        _button.onClick.RemoveAllListeners();
         _button.onClick.AddListener(delegate
         {
-            if (onClick != null)
-                onClick(_enumType);
+            Debug.Log("wtf");
+            if (onClick != null) onClick(_actionType);
         });
     }
 
     public void Enable(bool p_isEnabled)
     {
         gameObject.SetActive(p_isEnabled);
+        SetInteractable(p_isEnabled);
+    }
+
+    public void SetInteractable(bool p_isInteractable)
+    {
+        _button.interactable = p_isInteractable;
     }
 
     public void ResetButton()

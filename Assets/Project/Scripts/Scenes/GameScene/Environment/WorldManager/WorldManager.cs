@@ -42,8 +42,8 @@ public class WorldManager : MonoBehaviour
             _dictWorldTiles.Add(i, __floor.GetComponent<TileFloor>());
             __nextFloorPositionY += 3;
         }
-        //_localNavMeshBuilder.transform.position = new Vector3(0, __nextFloorPositionY / 2f, 0);
-        //_localNavMeshBuilder.m_Size = new Vector3(p_width, __nextFloorPositionY, p_lenght);
+        _localNavMeshBuilder.transform.position = new Vector3(0, __nextFloorPositionY / 2f, 0);
+        _localNavMeshBuilder.m_Size = new Vector3(p_width, __nextFloorPositionY, p_lenght);
     }
 
     public void BuildWorld()

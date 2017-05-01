@@ -5,9 +5,9 @@ using UnityEngine;
 
 public enum PoolType
 {
-    NAVMESH,
-    CENTRAL_UNIT,
-    GATHERING_UNIT,
+    ENTITY_BUILDING_CENTER,
+    ENTITY_UNIT_WORKER,
+    FAKE_ENTITY_UNIT_WORKER,
     DYNAMIC_ACTION_BUTTON
 }
 

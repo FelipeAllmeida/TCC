@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 
+
 public class UnitSelectionPanel : UIUnitPanel 
 {
     #region Events
@@ -45,7 +46,15 @@ public class UnitSelectionPanel : UIUnitPanel
         if (p_unit != null)
         {
             base.SetSelectedUnit(p_unit);
-            InitializeDynamicActionButtons();
+            List<CommandType> __listCommands = _selectedUnit.GetListAvaiableCommands();
+
+            List<Enum> __listEnum = new List<Enum>();
+            
+            foreach (var k in __listCommands)
+            {
+                __listEnum.Add(k);
+            }
+            InitializeDynamicActionButtons(__listEnum);
         }
         else
         {
@@ -97,16 +106,15 @@ public class UnitSelectionPanel : UIUnitPanel
         }
     }
 
-    private void InitializeDynamicActionButtons()
+    private void InitializeDynamicActionButtons(List<Enum> p_listEnum)
     {
-        List<CommandType> __listCommands = _selectedUnit.GetListAvaiableCommands();
         for (int i = 0; i < _listDynamicActionButtons.Count; i++)
         {
-            if (i < __listCommands.Count)
+            if (i < p_listEnum.Count)
             {
-                _listDynamicActionButtons[i].ChangeButtonCommandType(__listCommands[i]);
-                _listDynamicActionButtons[i].onClick += HandleOnActionButtonClick;
-                _listDynamicActionButtons[i].Enable(true);
+                _listDynamicActionButtons[i].ChangeButtonCommandType(p_listEnum[i]);
+                //_listDynamicActionButtons[i].onClick += HandleOnActionButtonClick;
+                _listDynamicActionButtons[i].Enable(true);    
             }
             else
             {
@@ -117,36 +125,58 @@ public class UnitSelectionPanel : UIUnitPanel
 
     private void DisableAllDynamicActionButtons()
     {
-        for (int i = 0;i < _listDynamicActionButtons.Count;i++)
+        for (int i = 0; i < _listDynamicActionButtons.Count; i++)
         {
             _listDynamicActionButtons[i].Enable(false);
         }
     }
 
-    private void HandleOnActionButtonClick(Enum p_enumType)
-    {     
-        if (p_enumType is CommandType)
+    private void HandleOnActionButtonClick(Enum p_actionType)
+    {
+        Debug.Log("HandleOnActionButtonClick: " + p_actionType);    
+        if (p_actionType is CommandType)
         {
-            CommandType __commandType = (CommandType)p_enumType;
+            CommandType __commandType = (CommandType)p_actionType;
             switch (__commandType)
             {
                 case CommandType.BUILD:
+                    List<Enum> __listEnum = new List<Enum>();
+                    if (_selectedUnit.GetEntityType() == EntityType.BUILDING)
+                    {
+                        List<EntityUnitType> __listUnits = new List<EntityUnitType>();
+                        
+                        foreach (var k in ((EntityBuilding)_selectedUnit).GetListAvaiableUnits())
+                        {
+                            __listEnum.Add(k);
+                        }
+                        InitializeDynamicActionButtons(__listEnum);
+                    }
+                    else if (_selectedUnit.GetEntityType() == EntityType.UNIT)
+                    {
+                        //List<EntityBuildingType> __listUnits = new List<EntityBuildingType>();
+                        //foreach (var k in ((EntityUnit)_selectedUnit).GetListAvaiableUnits())
+                        //{
+                        //    __listEnum.Add(k);
+                        //}
+                        //InitializeDynamicActionButtons(__listEnum);
+                    }
                     break;
                 case CommandType.MOVE:
                 case CommandType.NONE:
-                    if (onClickCommand != null) onClickCommand(_selectedUnit.GetEntityID(), __commandType, null);
+                    if (onClickCommand != null)
+                        onClickCommand(_selectedUnit.GetEntityID(), __commandType, null);
                     break;
             }
         }
-
-        if (p_enumType is EntityUnitType)
+        else if (p_actionType is EntityUnitType)
         {
-            if (onClickCommand != null) onClickCommand(_selectedUnit.GetEntityID(), CommandType.BUILD, null);
+            object[] __args = new object[] {(EntityUnitType)p_actionType};
+            if (onClickCommand != null) onClickCommand(_selectedUnit.GetEntityID(), CommandType.BUILD, __args);
         }
-
-        if (p_enumType is EntityBuildingType)
+        else if (p_actionType is EntityBuildingType)
         {
-            if (onClickCommand != null) onClickCommand(_selectedUnit.GetEntityID(), CommandType.BUILD, null);
-        }       
+            object[] __args = new object[] {(EntityBuildingType)p_actionType};
+            if (onClickCommand != null) onClickCommand(_selectedUnit.GetEntityID(), CommandType.BUILD, __args);
+        }
     }
 }
