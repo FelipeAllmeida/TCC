@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AI;
 
 public enum UnitMovementType
 {
@@ -11,23 +10,28 @@ public enum UnitMovementType
 
 public enum EntityType
 {
-    CENTER_BUILDING_UNIT,
-    GATHERING_UNIT
+    BUILDING,
+    UNIT
 }
 
-public enum UnitBuildingStateType
+public enum EntityUnitType
 {
-    UPGRADING_STRUCTURE,
-    PRODUCING_UNIT,
-    NONE
+    UNIT_WORKER
 }
+
+public enum EntityBuildingType
+{
+    BUILDING_CENTER
+}
+
 
 public abstract class Entity : MonoBehaviour 
 {
     #region Protected Data
-    protected int _id;
-    protected int _team;
-    protected int _currentFloor = 0;
+    [SerializeField] private EntityType _entityType;
+    [SerializeField] protected int _id;
+    [SerializeField] protected int _team;
+    [SerializeField] protected int _currentFloor = 0;
 
     protected float _currentHealth;
     protected float _maxHealth;
@@ -38,7 +42,6 @@ public abstract class Entity : MonoBehaviour
 
     #region Protected-Serialized Data
     [SerializeField] protected CommandController _commandController;
-    [SerializeField] protected NavMeshAgent _navMeshAgent;
     #endregion
 
     public virtual void Initialize(int p_unitID, int p_unitTeam)
@@ -52,17 +55,6 @@ public abstract class Entity : MonoBehaviour
     
     }
 
-    public virtual void MoveTo(Vector3 p_targetPosition)
-    {
-        _commandController.MoveTo(this, p_targetPosition);
-    }
-
-    public virtual void StopMoving()
-    {
-        _navMeshAgent.Stop();
-        _navMeshAgent.ResetPath();
-    }
-
     public virtual int GetUnitTeam()
     {
         return _team;
@@ -73,9 +65,9 @@ public abstract class Entity : MonoBehaviour
         return _id;
     }
 
-    public virtual NavMeshAgent GetNavMeshAgent()
+    public virtual EntityType GetEntityType()
     {
-        return _navMeshAgent;
+        return _entityType;
     }
 
     public virtual UnitMovementType GetUnitMovementType()

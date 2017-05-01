@@ -18,7 +18,7 @@ public enum GesturePhaseType
 
 public class InputInfo
 {
-    public Entity hit;
+    public GameObject hit;
     public Vector3 worldClickPoint;
     public Vector3 screenClickPoint;
 }
@@ -100,8 +100,12 @@ public class InputManager
         }
         else if (p_phase == GesturePhaseType.UPDATE)
         {
-            Debug.DrawRay(Camera.main.transform.position, Camera.main.transform.TransformDirection(Input.mousePosition), Color.red, 0.25f);
-            UpdateInputInfo(p_inputID);
+            bool _isAllowedLayer = false;
+            UpdateInputInfo(p_inputID, out _isAllowedLayer);
+            if (p_inputID == 1)
+            {
+                if (onMouseRightClick != null) onMouseRightClick(_dictInputs[1]);
+            }
         }
         else if (p_phase == GesturePhaseType.START)
         {
@@ -123,22 +127,22 @@ public class InputManager
         }
     }
 
-    private InputInfo CreateInputInfo(out bool p_isAllowedInput)
+    private InputInfo CreateInputInfo(out bool p_isInputAllowed)
     {
-        p_isAllowedInput = false;
+        p_isInputAllowed = false;
         InputInfo __inputInfo = new InputInfo();
         RaycastHit __raycastHit = new RaycastHit();
         Ray __ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         
-        if (Physics.Raycast(__ray, out __raycastHit, 1000))
+        if (Physics.Raycast(__ray, out __raycastHit, 100))
         {
-            Debug.Log(__raycastHit.collider.gameObject.name + " | " + __raycastHit.collider.gameObject.layer);
+            Debug.DrawLine(__ray.origin, __raycastHit.point);
             if (__raycastHit.collider.gameObject.layer == 0 || __raycastHit.collider.gameObject.layer == 9)
             {
-                p_isAllowedInput = true;
+                p_isInputAllowed = true;
             }
 
-            __inputInfo.hit = __raycastHit.collider.gameObject.GetComponent<Entity>();
+            __inputInfo.hit = __raycastHit.collider.gameObject;
             __inputInfo.worldClickPoint = __raycastHit.point;
             __inputInfo.worldClickPoint.y = _currentFloor;
             __inputInfo.screenClickPoint = Input.mousePosition;
@@ -146,11 +150,27 @@ public class InputManager
         return __inputInfo;
     }
 
-    private void UpdateInputInfo(int p_inputID)
+    private void UpdateInputInfo(int p_inputID, out bool p_isInputAllowed)
     {
+        p_isInputAllowed = false;
         if (_dictInputs.ContainsKey(p_inputID) == true)
         {
-            _dictInputs[p_inputID].screenClickPoint = Input.mousePosition;
+            RaycastHit __raycastHit = new RaycastHit();
+            Ray __ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+            if (Physics.Raycast(__ray, out __raycastHit, 100))
+            {
+                Debug.DrawLine(__ray.origin, __raycastHit.point);
+                if (__raycastHit.collider.gameObject.layer == 0 || __raycastHit.collider.gameObject.layer == 9)
+                {
+                    p_isInputAllowed = true;
+                }
+
+                _dictInputs[p_inputID].hit = __raycastHit.collider.gameObject;
+                _dictInputs[p_inputID].worldClickPoint = __raycastHit.point;
+                _dictInputs[p_inputID].worldClickPoint.y = _currentFloor;
+                _dictInputs[p_inputID].screenClickPoint = Input.mousePosition;
+            }
         }
     }
 }

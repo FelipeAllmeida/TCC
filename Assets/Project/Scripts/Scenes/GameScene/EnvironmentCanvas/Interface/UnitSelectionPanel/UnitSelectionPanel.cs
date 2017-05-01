@@ -123,15 +123,30 @@ public class UnitSelectionPanel : UIUnitPanel
         }
     }
 
-    private void HandleOnActionButtonClick(CommandType p_commandType)
-    {
-        if (onClickCommand != null) onClickCommand(_selectedUnit.GetEntityID(), p_commandType, null);
-        //switch (p_commandType)
-        //{
-        //    case CommandType.BUILD:
-        //        break;
-        //    case CommandType.MOVE:
-        //        break;
-        //}
+    private void HandleOnActionButtonClick(Enum p_enumType)
+    {     
+        if (p_enumType is CommandType)
+        {
+            CommandType __commandType = (CommandType)p_enumType;
+            switch (__commandType)
+            {
+                case CommandType.BUILD:
+                    break;
+                case CommandType.MOVE:
+                case CommandType.NONE:
+                    if (onClickCommand != null) onClickCommand(_selectedUnit.GetEntityID(), __commandType, null);
+                    break;
+            }
+        }
+
+        if (p_enumType is EntityUnitType)
+        {
+            if (onClickCommand != null) onClickCommand(_selectedUnit.GetEntityID(), CommandType.BUILD, null);
+        }
+
+        if (p_enumType is EntityBuildingType)
+        {
+            if (onClickCommand != null) onClickCommand(_selectedUnit.GetEntityID(), CommandType.BUILD, null);
+        }       
     }
 }

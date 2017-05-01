@@ -13,19 +13,32 @@ public class MoveCommand : Command
     public override CommandType Execute()
     {
         _previousPosition = _actor.transform.position;
-        _actor.GetNavMeshAgent().destination = _targetPosition;
-        return CommandType.MOVE;
+        if (_actor.GetEntityType() == EntityType.UNIT)
+        {
+            (_actor as EntityUnit).GetNavMeshAgent().destination = _targetPosition;
+            return CommandType.MOVE;
+        }
+        else
+        {
+            return CommandType.NONE;
+        }
     }
 
     public override void Stop()
     {
-        _actor.GetNavMeshAgent().Stop();
-        _actor.GetNavMeshAgent().ResetPath();
+        if (_actor.GetEntityType() == EntityType.UNIT)
+        {
+            (_actor as EntityUnit).GetNavMeshAgent().isStopped = true;
+            (_actor as EntityUnit).GetNavMeshAgent().ResetPath();
+        }
     }
 
     public override void Undo()
     {
-        _actor.GetNavMeshAgent().destination = _previousPosition;
+        if (_actor.GetEntityType() == EntityType.UNIT)
+        {
+            (_actor as EntityUnit).GetNavMeshAgent().destination = _previousPosition;
+        }
     }
 
     private Entity _actor;

@@ -28,6 +28,7 @@ public class CameraManager : MonoBehaviour
     public void Initialize(Vector3 p_worldDimensions)
     {
         _mainCamera.transform.eulerAngles = new Vector3(45f, 0f, 0f);
+        _uiCamera.transform.eulerAngles = new Vector3(45f, 0f, 0f);
         _worldDimensions = p_worldDimensions;
     }
 
@@ -71,6 +72,7 @@ public class CameraManager : MonoBehaviour
             _cameraPositionNodule = ATween.Vector3To(__startCameraPosition, __newCameraPosition, 0.1f, TweenEase.LINEAR, delegate (Vector3 p_value)
             {
                 _mainCamera.transform.position = p_value;
+                _uiCamera.transform.position = p_value;
             });
         }
         //__cameraPos.y = 7.5f;

@@ -25,7 +25,7 @@ public class Player
 
     private void CreateEntityCenterBuilding(Vector3 p_position)
     {
-        EntityBuilding __unitCenter = PoolManager.instance.Spawn(PoolType.CENTRAL_UNIT).GetComponent<EntityBuilding>();
+        EntityBuilding __unitCenter = PoolManager.instance.Spawn(PoolType.CENTRAL_UNIT, null, true).GetComponent<EntityBuilding>();
         CreateNewEntity(__unitCenter, Vector3.zero);
     }
 
@@ -39,7 +39,7 @@ public class Player
 
     public void HandleMouseLeftClick(InputInfo p_inputInfo)
     {
-        _currentSelectedUnit = p_inputInfo.hit;
+        _currentSelectedUnit = p_inputInfo.hit.GetComponent<Entity>();
 
         if (onRequestShowSelectUnitUI != null) onRequestShowSelectUnitUI(_currentSelectedUnit);
     }
@@ -50,7 +50,13 @@ public class Player
         {
             if (_currentSelectedUnit.GetUnitTeam() == _team)
             {
-                _currentSelectedUnit.MoveTo(p_inputInfo.worldClickPoint);
+                if (_currentSelectedUnit.GetEntityType() == EntityType.UNIT)
+                {
+                    if (p_inputInfo.hit != null && (p_inputInfo.hit.tag == "Entity" || p_inputInfo.hit.tag == "Ground"))
+                    {
+                        (_currentSelectedUnit as EntityUnit).MoveTo(p_inputInfo.worldClickPoint);                
+                    }
+                }
             }
         }
     }
@@ -59,8 +65,7 @@ public class Player
     {
         switch (p_commandType)
         {
-            case CommandType.BUILD:
-                
+            case CommandType.BUILD:                
                 break;
             case CommandType.MOVE:
                 break;

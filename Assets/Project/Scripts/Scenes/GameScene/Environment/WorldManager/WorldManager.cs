@@ -8,6 +8,10 @@ public class WorldManager : MonoBehaviour
     private const int _constMaxWorldHeight = 7;
     #endregion
 
+    #region Private Serialized-Data
+    [SerializeField] private LocalNavMeshBuilder _localNavMeshBuilder;
+    #endregion
+
     #region Private Data
     private static Dictionary<int, TileFloor> _dictWorldTiles;
 
@@ -16,7 +20,7 @@ public class WorldManager : MonoBehaviour
     #endregion
 
     public void Initialize(int p_width, int p_height, int p_lenght)
-    {
+    {    
         _worldWidth = p_width;
         _worldLenght = p_lenght;
         _dictWorldTiles = new Dictionary<int, TileFloor>();
@@ -38,6 +42,8 @@ public class WorldManager : MonoBehaviour
             _dictWorldTiles.Add(i, __floor.GetComponent<TileFloor>());
             __nextFloorPositionY += 3;
         }
+        //_localNavMeshBuilder.transform.position = new Vector3(0, __nextFloorPositionY / 2f, 0);
+        //_localNavMeshBuilder.m_Size = new Vector3(p_width, __nextFloorPositionY, p_lenght);
     }
 
     public void BuildWorld()
