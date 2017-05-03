@@ -16,7 +16,7 @@ public class Player
 
     private int _team;
     private int _idCounter = 0;
-    private bool _isBuildingEntity = false;
+    private bool _isSpawningEntityBuilding = false;
 
     // private List<Unit> _listSelectedUnits = new List<Unit>();
     #endregion
@@ -29,7 +29,7 @@ public class Player
 
     public void AUpdate()
     {
-        if (_isBuildingEntity == true)
+        if (_isSpawningEntityBuilding == true)
         {
             _fakeEntity.AUpdate();
         }
@@ -55,7 +55,7 @@ public class Player
 
     public void HandleMouseLeftClick(InputInfo p_inputInfo)
     {
-        if (_isBuildingEntity == true)
+        if (_isSpawningEntityBuilding == true)
         {
 
         }
@@ -69,7 +69,7 @@ public class Player
 
     public void HandleMouseRightClick(InputInfo p_inputInfo)
     {
-        if (_isBuildingEntity == true)
+        if (_isSpawningEntityBuilding == true)
         {
         }
         else
@@ -97,12 +97,12 @@ public class Player
             case CommandType.BUILD:
                 if (p_args[0] is EntityUnitType)
                 {
-                    _fakeEntity = PoolManager.instance.Spawn(PoolType.FAKE_ENTITY_UNIT_WORKER).GetComponent<FakeEntity>();
-                    _isBuildingEntity = true;
+                    (_dictEntity[p_unitID] as EntityBuilding).AddUnitToSpawnList((EntityUnitType)p_args[0]);
                 }
                 else if (p_args[0] is EntityBuildingType)
                 {
-                
+                    _fakeEntity = PoolManager.instance.Spawn(PoolType.FAKE_ENTITY_UNIT_WORKER).GetComponent<FakeEntity>();
+                    _isSpawningEntityBuilding = true;                
                 }             
                 break;
             case CommandType.MOVE:

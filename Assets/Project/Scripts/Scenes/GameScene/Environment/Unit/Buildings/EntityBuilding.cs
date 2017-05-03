@@ -45,6 +45,8 @@ public class EntityBuilding : Entity
         return _listAvaiableUnits;
     }
 
+    //public void StartToSpawnUnitList
+
     private void CreateNewUnit(EntityUnitType p_unitType, Action p_callbackFinish)
     {
         if (_currentUnitCreationNodule != null) _currentUnitCreationNodule.Stop();
