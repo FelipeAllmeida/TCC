@@ -4,6 +4,7 @@ using System;
 using Mono.Data.Sqlite;
 using System.Data;
 using UnityEngine;
+using Framework;
 
 public abstract class DataAccessObject
 {
@@ -125,7 +126,7 @@ private string _macDBPath = System.Environment.GetFolderPath (Environment.Specia
             }
             __counter++;
         }
-        //VoxDebug.Log(DebugTagType.BASE_MODEL, __query);
+        Debug.Log(__query);
         return __query;
     }
     private string BuildQuerySelect(SelectType p_selectType, string p_tableName, string[] p_arraySelectKeys, Dictionary<string, string[]> p_dictWhere)
@@ -385,147 +386,147 @@ Debug.Log("Update:" + __query);
     protected void SelectDataFromTableAsync(SelectType p_selectType, bool p_selectAll, string p_tableName, string[] p_arraySelectKeys, Dictionary<string, string> p_dictWhere, Action<List<Dictionary<string, string>>> p_callbackFinish)
     {
         List<Dictionary<string, string>> __listDataLoaded = new List<Dictionary<string, string>>();
-        //AThread.StartNewThread(delegate
-        //{
-        //    OpenDatabaseConnection();
-        //    using (_dbTransaction = _dbConnection.BeginTransaction())
-        //    {
-        //        using (_dbCommand = _dbConnection.CreateCommand())
-        //        {
-        //            _dbCommand.Connection = _dbConnection;
-        //            _dbCommand.Transaction = _dbTransaction;
-        //            _dbCommand.CommandText = BuildQuerySelect(p_selectType, p_selectAll, p_tableName, p_arraySelectKeys, p_dictWhere);
-        //            try
-        //            {
-        //                _dbReader = _dbCommand.ExecuteReader();
-        //                while (_dbReader.Read())
-        //                {
-        //                    Dictionary<string, string> __dictRowLoaded = new Dictionary<string, string>();
-        //                    for (int i = 0;i < p_arraySelectKeys.Length;i++)
-        //                    {
-        //                        string __stringRow = string.Empty;
-        //                        if (typeof(DateTime) == _dbReader.GetFieldType(i))
-        //                        {
-        //                            __stringRow = _dbReader.GetString(i);
-        //                        }
-        //                        else
-        //                        {
-        //                            __stringRow = _dbReader.GetValue(i).ToString();
-        //                        }
-        //                        __dictRowLoaded.Add(p_arraySelectKeys[i], __stringRow);
-        //                    }
-        //                    __listDataLoaded.Add(__dictRowLoaded);
-        //                }
-        //                _dbReader.Close();
-        //            }
-        //            catch (Exception __sqliteException)
-        //            {
-        //                Debug.LogError("Sqlite Exception: " + __sqliteException);
-        //            }
-        //        }
-        //    }
-        //    _dbConnection.Close();
-        //},
-        //delegate
-        //{
-        //    if (p_callbackFinish != null)
-        //        p_callbackFinish(__listDataLoaded);
-        //});
+        AThread.StartNewThread(delegate
+        {
+            OpenDatabaseConnection();
+            using (_dbTransaction = _dbConnection.BeginTransaction())
+            {
+                using (_dbCommand = _dbConnection.CreateCommand())
+                {
+                    _dbCommand.Connection = _dbConnection;
+                    _dbCommand.Transaction = _dbTransaction;
+                    _dbCommand.CommandText = BuildQuerySelect(p_selectType, p_selectAll, p_tableName, p_arraySelectKeys, p_dictWhere);
+                    try
+                    {
+                        _dbReader = _dbCommand.ExecuteReader();
+                        while (_dbReader.Read())
+                        {
+                            Dictionary<string, string> __dictRowLoaded = new Dictionary<string, string>();
+                            for (int i = 0;i < p_arraySelectKeys.Length;i++)
+                            {
+                                string __stringRow = string.Empty;
+                                if (typeof(DateTime) == _dbReader.GetFieldType(i))
+                                {
+                                    __stringRow = _dbReader.GetString(i);
+                                }
+                                else
+                                {
+                                    __stringRow = _dbReader.GetValue(i).ToString();
+                                }
+                                __dictRowLoaded.Add(p_arraySelectKeys[i], __stringRow);
+                            }
+                            __listDataLoaded.Add(__dictRowLoaded);
+                        }
+                        _dbReader.Close();
+                    }
+                    catch (Exception __sqliteException)
+                    {
+                        Debug.LogError("Sqlite Exception: " + __sqliteException);
+                    }
+                }
+            }
+            _dbConnection.Close();
+        },
+        delegate
+        {
+            if (p_callbackFinish != null)
+                p_callbackFinish(__listDataLoaded);
+        });
     }
     protected void SelectGroupOfDataFromTableAsync(SelectType p_selectType, string p_tableName, string[] p_arraySelectKeys, Dictionary<string, string[]> p_dictWhere, Action<List<Dictionary<string, string>>> p_callbackFinish)
     {
         List<Dictionary<string, string>> __listDataLoaded = new List<Dictionary<string, string>>();
-        //AThread.StartNewThread(delegate
-        //{
-        //    OpenDatabaseConnection();
-        //    using (_dbTransaction = _dbConnection.BeginTransaction())
-        //    {
-        //        using (_dbCommand = _dbConnection.CreateCommand())
-        //        {
-        //            _dbCommand.Connection = _dbConnection;
-        //            _dbCommand.Transaction = _dbTransaction;
-        //            _dbCommand.CommandText = BuildQuerySelect(p_selectType, p_tableName, p_arraySelectKeys, p_dictWhere);
-        //            try
-        //            {
-        //                _dbReader = _dbCommand.ExecuteReader();
-        //                while (_dbReader.Read())
-        //                {
-        //                    Dictionary<string, string> __dictRowLoaded = new Dictionary<string, string>();
-        //                    for (int i = 0;i < p_arraySelectKeys.Length;i++)
-        //                    {
-        //                        string __stringRow = string.Empty;
-        //                        if (typeof(DateTime) == _dbReader.GetFieldType(i))
-        //                        {
-        //                            __stringRow = _dbReader.GetString(i);
-        //                        }
-        //                        else
-        //                        {
-        //                            __stringRow = _dbReader.GetValue(i).ToString();
-        //                        }
-        //                        __dictRowLoaded.Add(p_arraySelectKeys[i], __stringRow);
-        //                    }
-        //                    __listDataLoaded.Add(__dictRowLoaded);
-        //                }
-        //                _dbReader.Close();
-        //            }
-        //            catch (Exception __sqliteException)
-        //            {
-        //                Debug.LogError("Sqlite Exception: " + __sqliteException);
-        //            }
-        //        }
-        //    }
-        //    _dbConnection.Close();
-        //},
-        //delegate
-        //{
-        //    if (p_callbackFinish != null)
-        //        p_callbackFinish(__listDataLoaded);
-        //});
+        AThread.StartNewThread(delegate
+        {
+            OpenDatabaseConnection();
+            using (_dbTransaction = _dbConnection.BeginTransaction())
+            {
+                using (_dbCommand = _dbConnection.CreateCommand())
+                {
+                    _dbCommand.Connection = _dbConnection;
+                    _dbCommand.Transaction = _dbTransaction;
+                    _dbCommand.CommandText = BuildQuerySelect(p_selectType, p_tableName, p_arraySelectKeys, p_dictWhere);
+                    try
+                    {
+                        _dbReader = _dbCommand.ExecuteReader();
+                        while (_dbReader.Read())
+                        {
+                            Dictionary<string, string> __dictRowLoaded = new Dictionary<string, string>();
+                            for (int i = 0;i < p_arraySelectKeys.Length;i++)
+                            {
+                                string __stringRow = string.Empty;
+                                if (typeof(DateTime) == _dbReader.GetFieldType(i))
+                                {
+                                    __stringRow = _dbReader.GetString(i);
+                                }
+                                else
+                                {
+                                    __stringRow = _dbReader.GetValue(i).ToString();
+                                }
+                                __dictRowLoaded.Add(p_arraySelectKeys[i], __stringRow);
+                            }
+                            __listDataLoaded.Add(__dictRowLoaded);
+                        }
+                        _dbReader.Close();
+                    }
+                    catch (Exception __sqliteException)
+                    {
+                        Debug.LogError("Sqlite Exception: " + __sqliteException);
+                    }
+                }
+            }
+            _dbConnection.Close();
+        },
+        delegate
+        {
+            if (p_callbackFinish != null)
+                p_callbackFinish(__listDataLoaded);
+        });
     }
     protected void SelectDataFromTableAsync(List<string> p_listTableNames, Dictionary<string, string[]> p_dictTableArraySelectKeys, Dictionary<string, Dictionary<string, string>> p_dictTableWhereKeys, Action<List<Dictionary<string, string>>> p_finishCallback)
     {
         List<Dictionary<string, string>> __listDataLoaded = new List<Dictionary<string, string>>();
-        //AThread.StartNewThread(delegate
-        //{
-        //    OpenDatabaseConnection();
-        //    using (_dbTransaction = _dbConnection.BeginTransaction())
-        //    {
-        //        using (_dbCommand = _dbConnection.CreateCommand())
-        //        {
-        //            _dbCommand.Connection = _dbConnection;
-        //            _dbCommand.Transaction = _dbTransaction;
-        //            _dbCommand.CommandText = BuildQuerySelect(SelectType.NONE, false, p_listTableNames, p_dictTableArraySelectKeys, p_dictTableWhereKeys);
-        //            try
-        //            {
-        //                _dbReader = _dbCommand.ExecuteReader();
-        //                while (_dbReader.Read())
-        //                {
-        //                    Dictionary<string, string> __dictRowLoaded = new Dictionary<string, string>();
-        //                    for (int i = 0;i < p_listTableNames.Count;i++)
-        //                    {
-        //                        string __tableName = p_listTableNames[i];
-        //                        for (int j = 0;j < p_dictTableArraySelectKeys[__tableName].Length;j++)
-        //                        {
-        //                            string __stringCollumnValue = _dbReader.GetString(j);
-        //                            __dictRowLoaded.Add(p_dictTableArraySelectKeys[__tableName][j], __stringCollumnValue);
-        //                        }
-        //                    }
-        //                    __listDataLoaded.Add(__dictRowLoaded);
-        //                }
-        //                _dbReader.Close();
-        //            }
-        //            catch (SqliteException __sqliteException)
-        //            {
-        //                Debug.Log("Sqlite Exception: " + __sqliteException);
-        //            }
-        //        }
-        //    }
-        //    _dbConnection.Close();
-        //},
-        //delegate
-        //{
-        //    p_finishCallback(__listDataLoaded);
-        //});
+        AThread.StartNewThread(delegate
+        {
+            OpenDatabaseConnection();
+            using (_dbTransaction = _dbConnection.BeginTransaction())
+            {
+                using (_dbCommand = _dbConnection.CreateCommand())
+                {
+                    _dbCommand.Connection = _dbConnection;
+                    _dbCommand.Transaction = _dbTransaction;
+                    _dbCommand.CommandText = BuildQuerySelect(SelectType.NONE, false, p_listTableNames, p_dictTableArraySelectKeys, p_dictTableWhereKeys);
+                    try
+                    {
+                        _dbReader = _dbCommand.ExecuteReader();
+                        while (_dbReader.Read())
+                        {
+                            Dictionary<string, string> __dictRowLoaded = new Dictionary<string, string>();
+                            for (int i = 0;i < p_listTableNames.Count;i++)
+                            {
+                                string __tableName = p_listTableNames[i];
+                                for (int j = 0;j < p_dictTableArraySelectKeys[__tableName].Length;j++)
+                                {
+                                    string __stringCollumnValue = _dbReader.GetString(j);
+                                    __dictRowLoaded.Add(p_dictTableArraySelectKeys[__tableName][j], __stringCollumnValue);
+                                }
+                            }
+                            __listDataLoaded.Add(__dictRowLoaded);
+                        }
+                        _dbReader.Close();
+                    }
+                    catch (SqliteException __sqliteException)
+                    {
+                        Debug.Log("Sqlite Exception: " + __sqliteException);
+                    }
+                }
+            }
+            _dbConnection.Close();
+        },
+        delegate
+        {
+            p_finishCallback(__listDataLoaded);
+        });
     }
 
     #endregion
@@ -601,42 +602,42 @@ Debug.Log("Update:" + __query);
     }
     protected void InsertListOfData(List<Dictionary<string, string>> p_listDictData, string p_tableName, Action p_callbackFinish)
     {
-        //AThread.StartNewThread(delegate
-        //{
-        //    OpenDatabaseConnection();
-        //    using (_dbTransaction = _dbConnection.BeginTransaction())
-        //    {
-        //        using (_dbCommand = _dbConnection.CreateCommand())
-        //        {
-        //            _dbCommand.Connection = _dbConnection;
-        //            _dbCommand.Transaction = _dbTransaction;
-        //            try
-        //            {
-        //                for (int i = 0;i < p_listDictData.Count;i++)
-        //                {
-        //                    Dictionary<string, string> __dictRowEntries = new Dictionary<string, string>();
-        //                    foreach (var k_key in p_listDictData[i].Keys)
-        //                    {
-        //                        __dictRowEntries.Add(k_key, p_listDictData[i][k_key]);
-        //                    }
-        //                    InsertDataOnTable(__dictRowEntries, p_tableName);
-        //                }
-        //                _dbTransaction.Commit();
-        //            }
-        //            catch (SqliteException __sqliteException)
-        //            {
-        //                Debug.LogError(__sqliteException);
-        //                _dbTransaction.Rollback();
-        //            }
-        //        }
-        //    }
-        //    _dbConnection.Close();
-        //},
-        //delegate
-        //{
-        //    if (p_callbackFinish != null)
-        //        p_callbackFinish();
-        //});
+        AThread.StartNewThread(delegate
+        {
+            OpenDatabaseConnection();
+            using (_dbTransaction = _dbConnection.BeginTransaction())
+            {
+                using (_dbCommand = _dbConnection.CreateCommand())
+                {
+                    _dbCommand.Connection = _dbConnection;
+                    _dbCommand.Transaction = _dbTransaction;
+                    try
+                    {
+                        for (int i = 0;i < p_listDictData.Count;i++)
+                        {
+                            Dictionary<string, string> __dictRowEntries = new Dictionary<string, string>();
+                            foreach (var k_key in p_listDictData[i].Keys)
+                            {
+                                __dictRowEntries.Add(k_key, p_listDictData[i][k_key]);
+                            }
+                            InsertDataOnTable(__dictRowEntries, p_tableName);
+                        }
+                        _dbTransaction.Commit();
+                    }
+                    catch (SqliteException __sqliteException)
+                    {
+                        Debug.LogError(__sqliteException);
+                        _dbTransaction.Rollback();
+                    }
+                }
+            }
+            _dbConnection.Close();
+        },
+        delegate
+        {
+            if (p_callbackFinish != null)
+                p_callbackFinish();
+        });
     }
     protected void UpdateListOfData(List<Dictionary<string, string>> p_listDictData, string p_tableName, string[] p_arrayWhereKeys, Action p_callbackFinish)
     {
@@ -673,90 +674,90 @@ Debug.Log("Update:" + __query);
     }
     protected void UpdateListOfDataAsync(List<Dictionary<string, string>> p_listDictData, string p_tableName, string[] p_arrayWhereKeys, Action p_callbackFinish)
     {
-        //AThreadNodule __threadNodule = null;
-        //__threadNodule = AThread.StartNewThread(delegate
-        //{
-        //    OpenDatabaseConnection();
-        //    using (_dbTransaction = _dbConnection.BeginTransaction())
-        //    {
-        //        using (_dbCommand = _dbConnection.CreateCommand())
-        //        {
-        //            _dbCommand.Connection = _dbConnection;
-        //            _dbCommand.Transaction = _dbTransaction;
-        //            try
-        //            {
-        //                for (int i = 0;i < p_listDictData.Count;i++)
-        //                {
-        //                    Dictionary<string, string> __dictRowEntries = new Dictionary<string, string>();
-        //                    foreach (var k_key in p_listDictData[i].Keys)
-        //                    {
-        //                        __dictRowEntries.Add(k_key, p_listDictData[i][k_key]);
-        //                    }
-        //                    UpdateDataOnTable(__dictRowEntries, p_tableName, p_arrayWhereKeys);
-        //                }
-        //                _dbTransaction.Commit();
-        //            }
-        //            catch (Exception __sqliteException)
-        //            {
-        //                Debug.LogError("Sqlite Exception: " + __sqliteException);
-        //                _dbTransaction.Rollback();
-        //            }
-        //        }
-        //    }
-        //    _dbConnection.Close();
-        //    if (_cancelDataRequest == true)
-        //    {
-        //        _dbConnection.Close();
-        //        __threadNodule.CancelThread(delegate
-        //        {
-        //            if (_callbackCancelDataRequest != null)
-        //                _callbackCancelDataRequest();
-        //        });
-        //    }
-        //}, p_callbackFinish);
+        AThreadNodule __threadNodule = null;
+        __threadNodule = AThread.StartNewThread(delegate
+        {
+            OpenDatabaseConnection();
+            using (_dbTransaction = _dbConnection.BeginTransaction())
+            {
+                using (_dbCommand = _dbConnection.CreateCommand())
+                {
+                    _dbCommand.Connection = _dbConnection;
+                    _dbCommand.Transaction = _dbTransaction;
+                    try
+                    {
+                        for (int i = 0;i < p_listDictData.Count;i++)
+                        {
+                            Dictionary<string, string> __dictRowEntries = new Dictionary<string, string>();
+                            foreach (var k_key in p_listDictData[i].Keys)
+                            {
+                                __dictRowEntries.Add(k_key, p_listDictData[i][k_key]);
+                            }
+                            UpdateDataOnTable(__dictRowEntries, p_tableName, p_arrayWhereKeys);
+                        }
+                        _dbTransaction.Commit();
+                    }
+                    catch (Exception __sqliteException)
+                    {
+                        Debug.LogError("Sqlite Exception: " + __sqliteException);
+                        _dbTransaction.Rollback();
+                    }
+                }
+            }
+            _dbConnection.Close();
+            if (_cancelDataRequest == true)
+            {
+                _dbConnection.Close();
+                __threadNodule.CancelThread(delegate
+                {
+                    if (_callbackCancelDataRequest != null)
+                        _callbackCancelDataRequest();
+                });
+            }
+        }, p_callbackFinish);
     }
     protected void InsertAndUpdatePageDataAsync(SimpleJSON.JSONNode p_pageDataJSON, string p_tableName, string[] p_arrayWhereKeys, Action p_callbackFinish)
     {
-        //AThreadNodule __threadNodule = null;
-        //__threadNodule = AThread.StartNewThread(delegate
-        //{
-        //    OpenDatabaseConnection();
-        //    using (_dbTransaction = _dbConnection.BeginTransaction())
-        //    {
-        //        using (_dbCommand = _dbConnection.CreateCommand())
-        //        {
-        //            _dbCommand.Connection = _dbConnection;
-        //            _dbCommand.Transaction = _dbTransaction;
-        //            try
-        //            {
-        //                for (int i = 0;i < p_pageDataJSON.Count;i++)
-        //                {
-        //                    Dictionary<string, string> __dictResults = new Dictionary<string, string>();
-        //                    foreach (var k_key in p_pageDataJSON[i].Keys)
-        //                    {
-        //                        __dictResults.Add(k_key, p_pageDataJSON[i][k_key]);
-        //                    }
-        //                    InsertOrUpdateData(__dictResults, p_tableName, p_arrayWhereKeys);
-        //                }
-        //                _dbTransaction.Commit();
-        //            }
-        //            catch (SqliteException __sqliteException)
-        //            {
-        //                Debug.LogError("Sqlite Exception: " + __sqliteException);
-        //                _dbTransaction.Rollback();
-        //            }
-        //        }
-        //    }
-        //    _dbConnection.Close();
-        //    if (_cancelDataRequest == true)
-        //    {
-        //        __threadNodule.CancelThread(delegate
-        //        {
-        //            if (_callbackCancelDataRequest != null)
-        //                _callbackCancelDataRequest();
-        //        });
-        //    }
-        //}, p_callbackFinish);
+        AThreadNodule __threadNodule = null;
+        __threadNodule = AThread.StartNewThread(delegate
+        {
+            OpenDatabaseConnection();
+            using (_dbTransaction = _dbConnection.BeginTransaction())
+            {
+                using (_dbCommand = _dbConnection.CreateCommand())
+                {
+                    _dbCommand.Connection = _dbConnection;
+                    _dbCommand.Transaction = _dbTransaction;
+                    try
+                    {
+                        for (int i = 0;i < p_pageDataJSON.Count;i++)
+                        {
+                            Dictionary<string, string> __dictResults = new Dictionary<string, string>();
+                            foreach (var k_key in p_pageDataJSON[i].Keys)
+                            {
+                                __dictResults.Add(k_key, p_pageDataJSON[i][k_key]);
+                            }
+                            InsertOrUpdateData(__dictResults, p_tableName, p_arrayWhereKeys);
+                        }
+                        _dbTransaction.Commit();
+                    }
+                    catch (SqliteException __sqliteException)
+                    {
+                        Debug.LogError("Sqlite Exception: " + __sqliteException);
+                        _dbTransaction.Rollback();
+                    }
+                }
+            }
+            _dbConnection.Close();
+            if (_cancelDataRequest == true)
+            {
+                __threadNodule.CancelThread(delegate
+                {
+                    if (_callbackCancelDataRequest != null)
+                        _callbackCancelDataRequest();
+                });
+            }
+        }, p_callbackFinish);
     }
     protected void InsertAndUpdateListOfData(List<Dictionary<string, string>> p_listDataRows, string p_tableName, string[] p_arrayWhereKeys, Action<bool> p_callbackFinish)
     {
@@ -801,59 +802,59 @@ Debug.Log("Update:" + __query);
     }
     protected void InsertAndUpdateListOfDataAsync(List<Dictionary<string, string>> p_listDataRows, string p_tableName, string[] p_arrayWhereKeys, Action<bool> p_callbackFinish)
     {
-        //AThreadNodule __threadNodule = null;
-        //bool __databaseDataChanged = false;
-        //__threadNodule = AThread.StartNewThread(delegate
-        //{
-        //    OpenDatabaseConnection();
-        //    using (_dbTransaction = _dbConnection.BeginTransaction())
-        //    {
-        //        using (_dbCommand = _dbConnection.CreateCommand())
-        //        {
-        //            _dbCommand.Connection = _dbConnection;
-        //            _dbCommand.Transaction = _dbTransaction;
-        //            try
-        //            {
-        //                for (int i = 0;i < p_listDataRows.Count;i++)
-        //                {
-        //                    Dictionary<string, string> __dictRowEntries = new Dictionary<string, string>();
-        //                    foreach (var k_key in p_listDataRows[i].Keys)
-        //                    {
-        //                        __dictRowEntries.Add(k_key, p_listDataRows[i][k_key]);
-        //                    }
-        //                    bool __databaseDataChangedTemp = InsertOrUpdateData(__dictRowEntries, p_tableName, p_arrayWhereKeys);
-        //                    if (__databaseDataChanged == false)
-        //                    {
-        //                        __databaseDataChanged = __databaseDataChangedTemp;
-        //                    }
-        //                }
-        //                if (__databaseDataChanged == true)
-        //                {
-        //                    _dbTransaction.Commit();
-        //                }
-        //            }
-        //            catch (SqliteException __sqliteException)
-        //            {
-        //                Debug.LogError("Sqlite Exception: " + __sqliteException);
-        //                _dbTransaction.Rollback();
-        //            }
-        //        }
-        //    }
-        //    _dbConnection.Close();
-        //    if (_cancelDataRequest == true)
-        //    {
-        //        __threadNodule.CancelThread(delegate
-        //        {
-        //            if (_callbackCancelDataRequest != null)
-        //                _callbackCancelDataRequest();
-        //        });
-        //    }
-        //},
-        //delegate
-        //{
-        //    if (p_callbackFinish != null)
-        //        p_callbackFinish(__databaseDataChanged);
-        //});
+        AThreadNodule __threadNodule = null;
+        bool __databaseDataChanged = false;
+        __threadNodule = AThread.StartNewThread(delegate
+        {
+            OpenDatabaseConnection();
+            using (_dbTransaction = _dbConnection.BeginTransaction())
+            {
+                using (_dbCommand = _dbConnection.CreateCommand())
+                {
+                    _dbCommand.Connection = _dbConnection;
+                    _dbCommand.Transaction = _dbTransaction;
+                    try
+                    {
+                        for (int i = 0;i < p_listDataRows.Count;i++)
+                        {
+                            Dictionary<string, string> __dictRowEntries = new Dictionary<string, string>();
+                            foreach (var k_key in p_listDataRows[i].Keys)
+                            {
+                                __dictRowEntries.Add(k_key, p_listDataRows[i][k_key]);
+                            }
+                            bool __databaseDataChangedTemp = InsertOrUpdateData(__dictRowEntries, p_tableName, p_arrayWhereKeys);
+                            if (__databaseDataChanged == false)
+                            {
+                                __databaseDataChanged = __databaseDataChangedTemp;
+                            }
+                        }
+                        if (__databaseDataChanged == true)
+                        {
+                            _dbTransaction.Commit();
+                        }
+                    }
+                    catch (SqliteException __sqliteException)
+                    {
+                        Debug.LogError("Sqlite Exception: " + __sqliteException);
+                        _dbTransaction.Rollback();
+                    }
+                }
+            }
+            _dbConnection.Close();
+            if (_cancelDataRequest == true)
+            {
+                __threadNodule.CancelThread(delegate
+                {
+                    if (_callbackCancelDataRequest != null)
+                        _callbackCancelDataRequest();
+                });
+            }
+        },
+        delegate
+        {
+            if (p_callbackFinish != null)
+                p_callbackFinish(__databaseDataChanged);
+        });
     }
     protected void ClearDataFromTable(string p_tableName, Action p_callbackSuccess, Action<string> p_callbackFailed)
     {
@@ -882,46 +883,46 @@ Debug.Log("Update:" + __query);
     }
     protected void DeleteListOfDataAsync(List<Dictionary<string, string>> p_listDataRows, string p_tableName, string[] p_arrayWhereKeys, Action p_callbackFinish)
     {
-        //AThreadNodule __threadNodule = null;
-        //__threadNodule = AThread.StartNewThread(delegate
-        //{
-        //    OpenDatabaseConnection();
-        //    using (_dbTransaction = _dbConnection.BeginTransaction())
-        //    {
-        //        using (_dbCommand = _dbConnection.CreateCommand())
-        //        {
-        //            _dbCommand.Connection = _dbConnection;
-        //            _dbCommand.Transaction = _dbTransaction;
-        //            try
-        //            {
-        //                for (int i = 0;i < p_listDataRows.Count;i++)
-        //                {
-        //                    Dictionary<string, string> __dictRowEntries = new Dictionary<string, string>();
-        //                    foreach (var k_key in p_listDataRows[i].Keys)
-        //                    {
-        //                        __dictRowEntries.Add(k_key, p_listDataRows[i][k_key]);
-        //                    }
-        //                    DeleteData(__dictRowEntries, p_tableName, p_arrayWhereKeys);
-        //                }
-        //                _dbTransaction.Commit();
-        //            }
-        //            catch (SqliteException __sqliteException)
-        //            {
-        //                Debug.LogError("Sqlite Exception: " + __sqliteException);
-        //                _dbTransaction.Rollback();
-        //            }
-        //        }
-        //    }
-        //    _dbConnection.Close();
-        //    if (_cancelDataRequest == true)
-        //    {
-        //        __threadNodule.CancelThread(delegate
-        //        {
-        //            if (_callbackCancelDataRequest != null)
-        //                _callbackCancelDataRequest();
-        //        });
-        //    }
-        //}, p_callbackFinish);
+        AThreadNodule __threadNodule = null;
+        __threadNodule = AThread.StartNewThread(delegate
+        {
+            OpenDatabaseConnection();
+            using (_dbTransaction = _dbConnection.BeginTransaction())
+            {
+                using (_dbCommand = _dbConnection.CreateCommand())
+                {
+                    _dbCommand.Connection = _dbConnection;
+                    _dbCommand.Transaction = _dbTransaction;
+                    try
+                    {
+                        for (int i = 0;i < p_listDataRows.Count;i++)
+                        {
+                            Dictionary<string, string> __dictRowEntries = new Dictionary<string, string>();
+                            foreach (var k_key in p_listDataRows[i].Keys)
+                            {
+                                __dictRowEntries.Add(k_key, p_listDataRows[i][k_key]);
+                            }
+                            DeleteData(__dictRowEntries, p_tableName, p_arrayWhereKeys);
+                        }
+                        _dbTransaction.Commit();
+                    }
+                    catch (SqliteException __sqliteException)
+                    {
+                        Debug.LogError("Sqlite Exception: " + __sqliteException);
+                        _dbTransaction.Rollback();
+                    }
+                }
+            }
+            _dbConnection.Close();
+            if (_cancelDataRequest == true)
+            {
+                __threadNodule.CancelThread(delegate
+                {
+                    if (_callbackCancelDataRequest != null)
+                        _callbackCancelDataRequest();
+                });
+            }
+        }, p_callbackFinish);
     }
     private void ClearTableData(string p_tableName)
     {

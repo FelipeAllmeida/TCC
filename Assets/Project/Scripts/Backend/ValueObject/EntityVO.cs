@@ -2,18 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EntityUnitVO  
+public class EntityVO  
 {
-    public EntityUnitType unitType;
-    //civilization
+    public string entityName;
+    public EntityType entityType;
 
     public float maxHealth;
     public float speed;
     public float timeToSpawn;
 
-    public int foodCost;
-    public int goldCost;
-    public int electricityCost;
-
-
+    public int resourceCost;
 }

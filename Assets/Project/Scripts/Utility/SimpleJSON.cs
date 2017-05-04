@@ -74,6 +74,14 @@ namespace SimpleJSON
 
         public virtual JSONNode this[string aKey] { get { return null; } set { } }
 
+        public virtual IEnumerable<string> Keys
+        {
+            get
+            {
+                yield break;
+            }
+        }
+
         public virtual string Value
         {
             get
@@ -972,6 +980,16 @@ namespace SimpleJSON
                 return null;
             }
         }
+
+        public override IEnumerable<string> Keys
+        {
+            get
+            {
+                foreach (var key in m_Dict.Keys)
+                    yield return key;
+            }
+        }
+
 
         public override IEnumerable<JSONNode> Children
         {
