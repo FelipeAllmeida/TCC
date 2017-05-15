@@ -2,8 +2,29 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class FakeEntity : MonoBehaviour 
+public class FakeEntity : MonoBehaviour
 {
+    #region Private Data
+    private int _constructorID;
+    private string _entityType;
+    #endregion
+
+    public void AInitialize(int p_constructorID, string p_type)
+    {
+        _constructorID = p_constructorID;
+        _entityType = p_type;
+    }
+
+    public int GetConstructorID()
+    {
+        return _constructorID;
+    }
+
+    public string GetEntityType()
+    {
+        return _entityType;
+    }
+
     public void AUpdate()
     {
         UpdateFakeEntityPosition();

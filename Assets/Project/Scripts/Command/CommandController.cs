@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -19,11 +20,19 @@ public class CommandController : MonoBehaviour
 
     private Command _command;
 
-    public void MoveTo(Entity p_actor, Vector3 p_targetPosition)
+    public void AUpdate()
+    {
+        if (_command != null)
+        {
+            _command.AUpdate();
+        }
+    }
+
+    public void MoveTo(Entity p_actor, Vector3 p_targetPosition, Action p_callbackFinish = null)
     {
         if (_listCommandType.Contains(CommandType.MOVE) == true)
         {
-            _command = new MoveCommand(p_actor, p_targetPosition);
+            _command = new MoveCommand(p_actor, p_targetPosition, p_callbackFinish);
             _currentCommand = _command.Execute();
         }
     }
@@ -32,6 +41,11 @@ public class CommandController : MonoBehaviour
     {
         _command.Stop();
         _currentCommand = CommandType.NONE;
+    }
+
+    public void SetListAvaiableCommands(List<CommandType> p_listCommandType)
+    {
+        _listCommandType = p_listCommandType;
     }
 
     public List<CommandType> GetListAvaiableCommands()

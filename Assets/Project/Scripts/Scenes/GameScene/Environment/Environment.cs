@@ -71,8 +71,11 @@ public class Environment : MonoBehaviour
 
     public void AUpdate()
     {
-        _inputManager.CheckInput();
-        if (_dictPlayers.ContainsKey(_mainPlayer))
+        if (_inputManager != null)
+        {
+            _inputManager.CheckInput();        
+        }
+        if (_dictPlayers != null && _dictPlayers.ContainsKey(_mainPlayer))
         {
             _dictPlayers[_mainPlayer].AUpdate();
         }

@@ -383,8 +383,10 @@ Debug.Log("Update:" + __query);
         if (p_callbackFinish != null)
             p_callbackFinish(__dictRowLoaded);
     }
+
     protected void SelectDataFromTableAsync(SelectType p_selectType, bool p_selectAll, string p_tableName, string[] p_arraySelectKeys, Dictionary<string, string> p_dictWhere, Action<List<Dictionary<string, string>>> p_callbackFinish)
     {
+        Debug.Log("SelectDataFromTableAsync");
         List<Dictionary<string, string>> __listDataLoaded = new List<Dictionary<string, string>>();
         AThread.StartNewThread(delegate
         {
@@ -429,8 +431,7 @@ Debug.Log("Update:" + __query);
         },
         delegate
         {
-            if (p_callbackFinish != null)
-                p_callbackFinish(__listDataLoaded);
+            if (p_callbackFinish != null) p_callbackFinish(__listDataLoaded);
         });
     }
     protected void SelectGroupOfDataFromTableAsync(SelectType p_selectType, string p_tableName, string[] p_arraySelectKeys, Dictionary<string, string[]> p_dictWhere, Action<List<Dictionary<string, string>>> p_callbackFinish)
@@ -1049,6 +1050,7 @@ Debug.Log("Update:" + __query);
 #if UNITY_EDITOR
         {
             _dbPath = "URI=file:" + Application.dataPath + "/StreamingAssets/" + _dbName;
+            Debug.Log(_dbPath);
         }
 #elif UNITY_IOS
 {

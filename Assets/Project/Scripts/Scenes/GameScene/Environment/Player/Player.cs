@@ -24,7 +24,9 @@ public class Player
     public void Initialize(int p_team, Vector3 p_startPosition)
     {
         _team = p_team;
-        CreateEntityCenterBuilding(p_startPosition);
+        #region TEST ONLY
+        CreateNewEntity("BUILDING_CENTER", Vector3.zero);
+        #endregion
     }
 
     public void AUpdate()
@@ -33,31 +35,53 @@ public class Player
         {
             _fakeEntity.AUpdate();
         }
-    }
 
-    private void CreateEntityCenterBuilding(Vector3 p_position)
-    {
-        EntityBuilding __unitCenter = PoolManager.instance.Spawn(PoolType.ENTITY_BUILDING_CENTER, null, true).GetComponent<EntityBuilding>();
-        CreateNewEntity(__unitCenter, Vector3.zero);
-    }
-
-    private void CreateNewEntity(Entity p_entity, Vector3 p_position)
-    {
-        p_entity.Initialize(_idCounter++, _team);
-        if (p_entity.GetEntityType() == EntityType.BUILDING)
+        foreach (var content in _dictEntity)
         {
-            p_position.y += p_entity.GetComponent<Renderer>().bounds.extents.y;
+            content.Value.AUpdate();
         }
-        p_entity.transform.position = p_position;
-        WorldManager.AddEntityToFloor(p_entity.GetCurrentFloor(), p_entity);
-        AddEntityToDict(p_entity);
+    }
+
+    private void CreateNewEntity(string p_entitySpecificType, Vector3 p_position)
+    {
+        Debug.Log("Create New Entity -> " + p_entitySpecificType + ": " + p_entitySpecificType);
+        Entity __entity = SpawnUnit(p_entitySpecificType);
+        __entity.Initialize(_idCounter++, _team, DataManager.instance.GetEntityVO(p_entitySpecificType));
+        __entity.transform.position = p_position;
+        ListenEntityEventsBuilding(__entity);
+        WorldManager.AddEntityToFloor(__entity.GetCurrentFloor(), __entity);
+        AddEntityToDict(__entity);
+    }
+
+    private void ListenEntityEventsBuilding(Entity p_entity)
+    {
+        p_entity.onRequestCreateEntity += CreateNewEntity;
     }
 
     public void HandleMouseLeftClick(InputInfo p_inputInfo)
     {
         if (_isSpawningEntityBuilding == true)
         {
-
+            Vector3 __buildPos = _fakeEntity.transform.position;
+            float __distance = Vector3.Distance(_dictEntity[_fakeEntity.GetConstructorID()].GetEntityPosition(), __buildPos);
+            Action __callbackBuildEntity = delegate
+            {
+                Debug.Log("__callbackBuildEntity");
+                _dictEntity[_fakeEntity.GetConstructorID()].AddUnitToSpawnList(_fakeEntity.GetEntityType());
+            };
+            PoolManager.instance.Despawn(PoolType.FAKE_ENTITY, _fakeEntity.gameObject);
+            _isSpawningEntityBuilding = false;
+            Debug.Log("Distance: " + __distance);
+            if (__distance < _dictEntity[_fakeEntity.GetConstructorID()].GetRange())
+            {
+                Debug.Log("(__distance < _dictEntity[_fakeEntity.GetConstructorID()].GetRange()");
+                __callbackBuildEntity();
+            }
+            else
+            {
+                Debug.Log("else");
+                (_dictEntity[_fakeEntity.GetConstructorID()] as EntityUnit).MoveTo(__buildPos, __callbackBuildEntity);
+            }
         }
         else
         {
@@ -71,6 +95,11 @@ public class Player
     {
         if (_isSpawningEntityBuilding == true)
         {
+            if (_isSpawningEntityBuilding == true)
+            {
+                PoolManager.instance.Despawn(PoolType.FAKE_ENTITY, _fakeEntity.gameObject);
+                _isSpawningEntityBuilding = false;            
+            }
         }
         else
         {
@@ -95,14 +124,19 @@ public class Player
         switch (p_commandType)
         {
             case CommandType.BUILD:
-                if (p_args[0] is EntityUnitType)
+                if (_dictEntity[p_unitID].GetEntityType() == EntityType.BUILDING)
                 {
-                    (_dictEntity[p_unitID] as EntityBuilding).AddUnitToSpawnList((EntityUnitType)p_args[0]);
+                    (_dictEntity[p_unitID] as EntityBuilding).AddUnitToSpawnList(p_args[0].ToString());
                 }
-                else if (p_args[0] is EntityBuildingType)
+                else if (_dictEntity[p_unitID].GetEntityType() == EntityType.UNIT)
                 {
-                    _fakeEntity = PoolManager.instance.Spawn(PoolType.FAKE_ENTITY_UNIT_WORKER).GetComponent<FakeEntity>();
-                    _isSpawningEntityBuilding = true;                
+                    Debug.Log("Spawn Fake Entity");
+                    if (_isSpawningEntityBuilding == false)
+                    {
+                        _fakeEntity = PoolManager.instance.Spawn(PoolType.FAKE_ENTITY).GetComponent<FakeEntity>();
+                        _fakeEntity.AInitialize(p_unitID, p_args[0].ToString());
+                        _isSpawningEntityBuilding = true;    
+                    }
                 }             
                 break;
             case CommandType.MOVE:
@@ -118,5 +152,18 @@ public class Player
         }
 
         _dictEntity.Add(p_entity.GetEntityID(), p_entity);
+    }
+
+    private Entity SpawnUnit(string p_entityType)
+    {
+        switch (p_entityType)
+        {
+            case "UNIT_WORKER":
+                return PoolManager.instance.Spawn(PoolType.ENTITY_UNIT_WORKER, null, false).GetComponent<Entity>();
+            case "BUILDING_CENTER":
+                return PoolManager.instance.Spawn(PoolType.ENTITY_BUILDING_CENTER, null, true).GetComponent<Entity>();
+            default:
+                return null;
+        }
     }
 }

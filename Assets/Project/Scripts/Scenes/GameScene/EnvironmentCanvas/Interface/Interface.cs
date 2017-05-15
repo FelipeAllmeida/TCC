@@ -12,10 +12,12 @@ public class Interface : MonoBehaviour
 
     [Header("Interface Panels")]
     [SerializeField] private UnitSelectionPanel _unitSelectionPanel;
+    [SerializeField] private EntityDisplayPanel _entityDisplayPanel;
 
     public void AInitialize()
     {
         InitializeSelectionPanel();
+        InitializeEntityDisplayPanel();
     }
 
     private void InitializeSelectionPanel()
@@ -28,22 +30,28 @@ public class Interface : MonoBehaviour
 
     }
 
+    private void InitializeEntityDisplayPanel()
+    {
+        _entityDisplayPanel.Initialize();
+    }
+
     public void AUpdate()
     {
-
+        _unitSelectionPanel.AUpdate();
+        _entityDisplayPanel.AUpdate();
     }
 
     #region Panels
-    #region Unit Selection Panel
     public void SetSelectedUnit(Entity p_unit)
     {
         _unitSelectionPanel.SetSelectedUnit(p_unit);
+        _entityDisplayPanel.SetSelectedUnit(p_unit);
     }
 
     public void DeselectUnit(Entity p_unit)
     {
         _unitSelectionPanel.DeselectUnit();
+        _entityDisplayPanel.DeselectUnit();
     }
-    #endregion
     #endregion
 }

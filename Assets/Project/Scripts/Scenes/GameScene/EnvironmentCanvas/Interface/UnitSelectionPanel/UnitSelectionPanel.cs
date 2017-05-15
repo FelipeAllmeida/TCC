@@ -13,13 +13,12 @@ public class UnitSelectionPanel : UIUnitPanel
     #endregion
 
     #region Private Serialized-Data
-    [SerializeField] private Image _background;
+   
     #endregion
 
     #region Private Data
     private List<DynamicActionButton> _listDynamicActionButtons;
 
-    private Vector2 _dimensions;
     private Vector2 _actionButtonDimensions = new Vector2(35f, 35f);
     #endregion
 
@@ -28,6 +27,7 @@ public class UnitSelectionPanel : UIUnitPanel
         base.Initialize();
         _dimensions = GetPanelDimensions();
         CalculateAndSetDynamicActionButtonsPositions();
+        CalculateAndSetInputBlockerScaleAndPosition();
     }
 
     public override void Enable()
@@ -42,19 +42,19 @@ public class UnitSelectionPanel : UIUnitPanel
 
     public override void SetSelectedUnit(Entity p_unit)
     {
-        if (_selectedUnit == p_unit) return;
+        if (_selectedEntity == p_unit) return;
         if (p_unit != null)
         {
             base.SetSelectedUnit(p_unit);
-            List<CommandType> __listCommands = _selectedUnit.GetListAvaiableCommands();
+            List<CommandType> __listCommands = _selectedEntity.GetListAvaiableCommands();
 
-            List<Enum> __listEnum = new List<Enum>();
+            List<string> __listActions = new List<string>();
             
             foreach (var k in __listCommands)
             {
-                __listEnum.Add(k);
+                __listActions.Add(k.ToString());
             }
-            InitializeDynamicActionButtons(__listEnum);
+            InitializeDynamicActionButtons(__listActions);
         }
         else
         {
@@ -68,10 +68,7 @@ public class UnitSelectionPanel : UIUnitPanel
         base.DeselectUnit();
     }
 
-    private Vector2 GetPanelDimensions()
-    {
-        return new Vector2(_background.GetComponent<RectTransform>().rect.width, _background.GetComponent<RectTransform>().rect.height);
-    }
+
 
     private void CalculateAndSetDynamicActionButtonsPositions()
     {
@@ -87,16 +84,16 @@ public class UnitSelectionPanel : UIUnitPanel
         int __buttonsAxisX = Mathf.FloorToInt(__width / (_actionButtonDimensions.x + __widthOffset));
         int __buttonsAxisY = Mathf.FloorToInt(__height / (_actionButtonDimensions.y + __heightOffset));
         
-        for (int i = 0; i < __buttonsAxisX + 1; i++)
+        for (int i = 0; i < __buttonsAxisY + 1; i++)
         {
-            for (int j = 0; j < __buttonsAxisY + 1; j++)
+            for (int j = 0; j < __buttonsAxisX + 1; j++)
             {
                 DynamicActionButton __actionButton = PoolManager.instance.Spawn(PoolType.DYNAMIC_ACTION_BUTTON, transform).GetComponent<DynamicActionButton>();
                 __actionButton.Enable(false);
                 __actionButton.onClick += HandleOnActionButtonClick;
 
-                float __buttonPosX = _background.GetComponent<RectTransform>().rect.min.x + (__widthOffset + _actionButtonDimensions.x / 2f) * (i + 1f);
-                float __buttonPosY = _background.GetComponent<RectTransform>().rect.max.y - (__heightOffset + _actionButtonDimensions.y / 2f) * (j + 1f);
+                float __buttonPosX = _background.GetComponent<RectTransform>().rect.min.x + (__widthOffset + _actionButtonDimensions.x / 2f) * (j + 1f);
+                float __buttonPosY = _background.GetComponent<RectTransform>().rect.max.y - (__heightOffset + _actionButtonDimensions.y / 2f) * (i + 1f);
                 Vector2 __buttonPos = new Vector2(__buttonPosX, __buttonPosY);
 
                  
@@ -106,13 +103,18 @@ public class UnitSelectionPanel : UIUnitPanel
         }
     }
 
-    private void InitializeDynamicActionButtons(List<Enum> p_listEnum)
+    private void CalculateAndSetInputBlockerScaleAndPosition()
+    {
+        _inputBloker.size = new Vector3(_background.rectTransform.rect.width, _background.rectTransform.rect.height, 0f);
+    }
+
+    private void InitializeDynamicActionButtons(List<string> p_listActionType)
     {
         for (int i = 0; i < _listDynamicActionButtons.Count; i++)
         {
-            if (i < p_listEnum.Count)
+            if (i < p_listActionType.Count)
             {
-                _listDynamicActionButtons[i].ChangeButtonCommandType(p_listEnum[i]);
+                _listDynamicActionButtons[i].ChangeButtonCommandType(p_listActionType[i]);
                 //_listDynamicActionButtons[i].onClick += HandleOnActionButtonClick;
                 _listDynamicActionButtons[i].Enable(true);    
             }
@@ -131,52 +133,30 @@ public class UnitSelectionPanel : UIUnitPanel
         }
     }
 
-    private void HandleOnActionButtonClick(Enum p_actionType)
+    private void HandleOnActionButtonClick(string p_actionType)
     {
-        Debug.Log("HandleOnActionButtonClick: " + p_actionType);    
-        if (p_actionType is CommandType)
+        Debug.Log("HandleOnActionButtonClick: " + p_actionType);
+        Debug.Log("is command: " + Enum.IsDefined(typeof(CommandType), p_actionType));
+        if (Enum.IsDefined(typeof(CommandType), p_actionType) == true)
         {
-            CommandType __commandType = (CommandType)p_actionType;
+            CommandType __commandType = (CommandType)Enum.Parse(typeof(CommandType), p_actionType);
+            Debug.Log("CommandType: " + __commandType);
             switch (__commandType)
             {
-                case CommandType.BUILD:
-                    List<Enum> __listEnum = new List<Enum>();
-                    if (_selectedUnit.GetEntityType() == EntityType.BUILDING)
-                    {
-                        List<EntityUnitType> __listUnits = new List<EntityUnitType>();
-                        
-                        foreach (var k in ((EntityBuilding)_selectedUnit).GetListAvaiableUnits())
-                        {
-                            __listEnum.Add(k);
-                        }
-                        InitializeDynamicActionButtons(__listEnum);
-                    }
-                    else if (_selectedUnit.GetEntityType() == EntityType.UNIT)
-                    {
-                        //List<EntityBuildingType> __listUnits = new List<EntityBuildingType>();
-                        //foreach (var k in ((EntityUnit)_selectedUnit).GetListAvaiableUnits())
-                        //{
-                        //    __listEnum.Add(k);
-                        //}
-                        //InitializeDynamicActionButtons(__listEnum);
-                    }
+                case CommandType.BUILD: 
+                        InitializeDynamicActionButtons(_selectedEntity.GetListAvaiableEntities()); 
                     break;
                 case CommandType.MOVE:
                 case CommandType.NONE:
                     if (onClickCommand != null)
-                        onClickCommand(_selectedUnit.GetEntityID(), __commandType, null);
+                        onClickCommand(_selectedEntity.GetEntityID(), __commandType, null);
                     break;
             }
         }
-        else if (p_actionType is EntityUnitType)
-        {
-            object[] __args = new object[] {(EntityUnitType)p_actionType};
-            if (onClickCommand != null) onClickCommand(_selectedUnit.GetEntityID(), CommandType.BUILD, __args);
-        }
-        else if (p_actionType is EntityBuildingType)
-        {
-            object[] __args = new object[] {(EntityBuildingType)p_actionType};
-            if (onClickCommand != null) onClickCommand(_selectedUnit.GetEntityID(), CommandType.BUILD, __args);
+        else
+        {            
+            object[] __args = new object[] { p_actionType };
+            if (onClickCommand != null) onClickCommand(_selectedEntity.GetEntityID(), CommandType.BUILD, __args);           
         }
     }
 }

@@ -21,21 +21,20 @@ public class DynamicActionButton : MonoBehaviour
 
 
     #region Event Data
-    public event Action<Enum> onClick;
+    public event Action<string> onClick;
     #endregion
 
     #region Private Data
-    private Enum _actionType;
+    private string _actionType;
     #endregion
 
-    public void ChangeButtonCommandType(Enum p_actionType)
+    public void ChangeButtonCommandType(string p_actionType)
     {
         Debug.Log("ChangeButtonCommandType: " + p_actionType);
         _actionType = p_actionType;
         _button.onClick.RemoveAllListeners();
         _button.onClick.AddListener(delegate
         {
-            Debug.Log("wtf");
             if (onClick != null) onClick(_actionType);
         });
     }

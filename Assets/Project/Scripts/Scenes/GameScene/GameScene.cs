@@ -17,10 +17,13 @@ public class GameScene : State<TCC.StateType>
 
     public override void AInitialize()
     {
-        _cameraManager.Initialize(new Vector3(100f, 8f, 100f));
-        _environment.AInitialize();
-        _environmentCanvas.AInitialize();
-        ListenEnvironmentEvents();
+        DataManager.instance.AInitialize(delegate
+        {
+            _cameraManager.Initialize(new Vector3(100f, 8f, 100f));
+            _environment.AInitialize();
+            _environmentCanvas.AInitialize();
+            ListenEnvironmentEvents();
+        });
     }
 
     private void ListenEnvironmentEvents()

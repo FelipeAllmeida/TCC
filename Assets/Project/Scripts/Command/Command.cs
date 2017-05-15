@@ -9,6 +9,11 @@ public abstract class Command
         return CommandType.NONE;
     }
 
+    public virtual void AUpdate()
+    {
+
+    }
+
     public virtual void Stop()
     {
     

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
@@ -9,22 +10,22 @@ public class EntityUnit : Entity
     [SerializeField] protected NavMeshAgent _navMeshAgent;
     #endregion
 
-    public override void Initialize(int p_unitID, int p_unitTeam)
+    public override void Initialize(int p_unitID, int p_unitTeam, EntityVO p_entityVO)
     {
-        base.Initialize(p_unitID, p_unitTeam);
+        base.Initialize(p_unitID, p_unitTeam, p_entityVO);
     }
 
     public override void AUpdate()
     {
-
+        base.AUpdate();
     }
 
-    public virtual void MoveTo(Vector3 p_targetPosition)
+    public void MoveTo(Vector3 p_targetPosition, Action p_callbackFinish = null)
     {
-        _commandController.MoveTo(this, p_targetPosition);
+        _commandController.MoveTo(this, p_targetPosition, p_callbackFinish);
     }
 
-    public virtual void StopMoving()
+    public void StopMoving()
     {
         _navMeshAgent.isStopped = true;
         _navMeshAgent.ResetPath();
