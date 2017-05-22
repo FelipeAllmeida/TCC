@@ -23,13 +23,19 @@ public class DataManager
     #region Private Data
     private Dictionary<string, EntityVO> _dictEntityVO;
 
+    private LocalConnector _localConnector;
+
     #region DAO
     private EntityDAO _entityDAO;
     #endregion
+
+
     #endregion
 
     public void AInitialize(Action p_callbackFinish)
     {
+        _localConnector = new LocalConnector();
+        _localConnector.AInitialize();
         InitializeEntityDAO(p_callbackFinish);        
     }
 

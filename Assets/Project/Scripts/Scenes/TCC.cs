@@ -7,6 +7,7 @@ public class TCC : Scene<TCC.StateType>
 {
     public enum StateType
     {
-        GAME
+        GAME,
+        LOGIN
     } 
 }

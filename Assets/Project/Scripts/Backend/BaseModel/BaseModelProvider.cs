@@ -27,11 +27,7 @@ public abstract class DataAccessObject
     protected Dictionary<string, string> _headers = new Dictionary<string, string>();
     #endregion
     #region Private Data
-#if UNITY_IOS || UNITY_ANDROID || UNITY_EDITOR
     private string _dbName = "punk_hazard.sqdb";
-#else
-private string _dbName = "temp.sqdb";
-#endif
     private string _dbPath;
 #if UNITY_STANDALONE_OSX
 private string _macDBPath = System.Environment.GetFolderPath (Environment.SpecialFolder.Personal) + "/DBData";
@@ -1047,12 +1043,11 @@ Debug.Log("Update:" + __query);
     }
     private void GetDatabasePath()
     {
-#if UNITY_EDITOR
-        {
-            _dbPath = "URI=file:" + Application.dataPath + "/StreamingAssets/" + _dbName;
-            Debug.Log(_dbPath);
-        }
-#elif UNITY_IOS
+//#if UNITY_EDITOR
+//        {
+//            _dbPath = "URI=file:" + Application.dataPath + "/StreamingAssets/" + _dbName;
+//        }
+#if UNITY_IOS
 {
 _dbPath = "URI=file:" + Application.persistentDataPath + "/" + _dbName;
 }
