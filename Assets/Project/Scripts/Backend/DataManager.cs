@@ -36,6 +36,7 @@ public class DataManager
     {
         _localConnector = new LocalConnector();
         _localConnector.AInitialize();
+
         InitializeEntityDAO(p_callbackFinish);        
     }
 
@@ -67,5 +68,17 @@ public class DataManager
         return (_dictEntityVO.ContainsKey(p_entitySpecificType) == true) ? _dictEntityVO[p_entitySpecificType] : null;
     }
 
+    #endregion
+
+    #region Server Connector
+    public void TryToConnectToSocket(string p_ipAddress, int p_port, Action p_callbackSuccess, Action p_callbackFailed)
+    {
+        Server.instance.TryToConnectToSocket(p_ipAddress, p_port, p_callbackSuccess, p_callbackFailed);
+    }
+
+    public void SendDataStreamToSocket(string p_data)
+    {
+        Server.instance.SendDataStreamToServer(p_data);
+    }
     #endregion
 }

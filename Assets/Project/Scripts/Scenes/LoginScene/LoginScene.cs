@@ -6,12 +6,12 @@ using Framework;
 public class LoginScene : State<TCC.StateType>
 {
     #region Private Serialized-Data
-
+    [SerializeField] private GameLobby _gameLobby;
     #endregion
 
     public override void AInitialize()
     {
-    
+        _gameLobby.AInitialize();
     }
 
     public override void AUpdate()

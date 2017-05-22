@@ -171,6 +171,7 @@ public class SocketController
     public void SetMasterClientStream(string p_responseStream)
     {
         _masterClient.clientToGetResponse = p_responseStream;
+        UnityEngine.Debug.LogFormat("Received data from Client [{0}]: \n{1}", _masterClient.id, p_responseStream);
         listClients[listClients.FindIndex(x => x.id == _masterClient.id)] = _masterClient;
     }
 
@@ -193,7 +194,7 @@ public class SocketController
                 string __response = Encoding.ASCII.GetString(_bytes, 0, __readCount);
 
                 Console.WriteLine("Received data from Client [{0}]: \n{1}", p_clientData.id, __response);
-
+                UnityEngine.Debug.LogFormat("Received data from Client [{0}]: \n{1}", p_clientData.id, __response);
                 p_clientData.clientToGetResponse = __response;
 
                 listClients[listClients.FindIndex(x => x.id == p_clientData.id)] = p_clientData;
