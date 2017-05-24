@@ -5,14 +5,27 @@ using UnityEngine;
 public class GameLobby : MonoBehaviour
 {
     [SerializeField] private SignInScreen _signInScreen;
+    [SerializeField] private LobbyScreen _lobbyScreen;
+
     public void AInitialize()
     {
         _signInScreen.Initialize();
+        _signInScreen.EnableScreen(true);
+
+        _lobbyScreen.Initialize();
+        _lobbyScreen.EnableScreen(false);
+
+        ListenScreenEvents();
     }
 
-    public void AUpdate()
+    private void ListenScreenEvents()
     {
-    
+        _signInScreen.onSuccessfullyConnect += HandleOnSuccessfullyConnect;
     }
 
+    private void HandleOnSuccessfullyConnect()
+    {
+        _signInScreen.EnableScreen(false);
+        _lobbyScreen.EnableScreen(true);
+    }
 }

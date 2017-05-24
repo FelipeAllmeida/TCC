@@ -28,6 +28,7 @@ public abstract class Entity : MonoBehaviour
     [SerializeField] protected int _team;
     [SerializeField] protected int _currentFloor = 0;
 
+
     protected float _currentHealth;
     protected float _maxHealth;
     protected float _range;
@@ -199,5 +200,39 @@ public abstract class Entity : MonoBehaviour
     }
     #endregion
     #endregion
+
+    protected abstract class EntityState<T>
+    {
+        public event Action<T> onRequestChangeStep;
+
+        public abstract void Start(Entity p_entity);
+
+        public virtual void Pause()
+        {
+
+        }
+
+        public virtual void Resume()
+        {
+
+        }
+
+        public virtual void AUpdate()
+        {
+
+        }
+
+        public abstract void Finish();
+
+        public abstract T GetStepType();
+
+        protected void ChangeStep(T p_stepType)
+        {
+            if (onRequestChangeStep != null)
+                onRequestChangeStep(p_stepType);
+        }
+    }
 }
+
+
 

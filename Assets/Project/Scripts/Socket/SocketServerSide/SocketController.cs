@@ -5,6 +5,7 @@ using System.Text;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Linq;
 using SimpleJSON;
 
 public class SocketInitializationData
@@ -22,6 +23,7 @@ public class SocketController
 
     #region Public Data
     public List<ClientData> listClients;                   // Lista pública com os dados dos clientes
+    public Dictionary<string, ClientData> dictClients;
     // É usada para armazenar a última resposta do
     // cliente para com o socket e também a próxima
     // resposta do socket para o cliente.
@@ -61,9 +63,11 @@ public class SocketController
     //Inicializa o socket recebendo os parametros "SocketInitializationData", deve ser chamado antes de qualquer outro método
     public void Initialize(SocketInitializationData p_socketData)
     {
+        UnityEngine.Debug.Log(p_socketData.ipAddress + " | " + p_socketData.port);
         _ipAdress = IPAddress.Parse(p_socketData.ipAddress);
         _tcpListener = new TcpListener(_ipAdress, p_socketData.port);
         listClients = new List<ClientData>();
+        dictClients = new Dictionary<string, ClientData>();
         _listClientWaitForResponseThreads = new List<Thread>();
         _bytes = new Byte[1024];
         _maxClients = p_socketData.maxClients;
@@ -76,7 +80,7 @@ public class SocketController
         _masterClient = new ClientData();
         _masterClient.isServer = true;
         _masterClient.id = Guid.NewGuid().ToString();
-        listClients.Add(_masterClient);
+        dictClients.Add(_masterClient.id, _masterClient);
     }
 
     //Inicializa o socket, recebe um callback de sucesso e um callback de falha caso acontece algum erro na inicialização.
@@ -96,7 +100,7 @@ public class SocketController
         }
         catch (SocketException p_socketException)
         {
-            Console.WriteLine("SocketException: {0}", p_socketException);
+            UnityEngine.Debug.LogFormat("SocketException: {0}", p_socketException);
             if (p_callbackFailed != null)
                 p_callbackFailed();
         }
@@ -108,6 +112,7 @@ public class SocketController
         Console.WriteLine("Socket Stopped");
         _isServerRunning = false;
         listClients.Clear();
+        dictClients.Clear();
         _tcpListener.Stop();
     }
 
@@ -117,7 +122,7 @@ public class SocketController
     {
         if (_isAcceptingNewClients == false)
             return;
-        Console.WriteLine("Waiting all {0} clients to connect...", _maxClients);
+        UnityEngine.Debug.LogFormat("Waiting all {0} clients to connect...", _maxClients);
         _threadClientAcception = new Thread(new ParameterizedThreadStart(AcceptTcpClientThread));
         _threadClientAcception.Start(p_callbackFinish);
     }
@@ -127,9 +132,8 @@ public class SocketController
     {
         while (_isAcceptingNewClients == true)
         {
-            if (listClients.Count >= _maxClients)
+            if (dictClients.Count >= _maxClients)
             {
-                Console.WriteLine("All clients connected, starting game...");
                 _isAcceptingNewClients = false;
 
                 if ((Action)p_callbackFinish != null)
@@ -142,8 +146,8 @@ public class SocketController
                 __clientData.id = Guid.NewGuid().ToString();
                 __clientData.isServer = false;
 
-                listClients.Add(__clientData);
-                Console.WriteLine("New Client connected, {0} of {1}\n", listClients.Count, _maxClients);
+                dictClients.Add(__clientData.id, __clientData);
+                UnityEngine.Debug.LogFormat("New Client connected, {0} of {1}\n", dictClients.Count, _maxClients);
             }
         }
     }
@@ -152,27 +156,41 @@ public class SocketController
     public void StartWaitAllClientsStreamThread()
     {
         _isWaitingStreamInLoop = true;
-        for (int i = 0; i < listClients.Count;i++)
+        foreach (var content in dictClients)
         {
-            if (listClients[i].isServer == false)
+            if (content.Value.isServer == false)
             {
-                int __index = i;
                 ThreadStart __callbackThreadStart = delegate
                 {
-                    WaitClientStreamThread(listClients[__index]);
+                    WaitClientStreamThread(content.Value);
                 };
                 Thread __newThread = new Thread(__callbackThreadStart);
                 __newThread.Start();
-                _listClientWaitForResponseThreads.Add(__newThread);            
+                _listClientWaitForResponseThreads.Add(__newThread);
             }
         }
+        //for (int i = 0; i < listClients.Count;i++)
+        //{
+        //    if (listClients[i].isServer == false)
+        //    {
+        //        int __index = i;
+        //        ThreadStart __callbackThreadStart = delegate
+        //        {
+        //            WaitClientStreamThread(listClients[__index]);
+        //        };
+        //        Thread __newThread = new Thread(__callbackThreadStart);
+        //        __newThread.Start();
+        //        _listClientWaitForResponseThreads.Add(__newThread);            
+        //    }
+        //}
     }
 
     public void SetMasterClientStream(string p_responseStream)
     {
         _masterClient.clientToGetResponse = p_responseStream;
-        UnityEngine.Debug.LogFormat("Received data from Client [{0}]: \n{1}", _masterClient.id, p_responseStream);
-        listClients[listClients.FindIndex(x => x.id == _masterClient.id)] = _masterClient;
+        UnityEngine.Debug.LogFormat("Received data from Master [{0}]: \n{1}", _masterClient.id, p_responseStream);
+       // listClients[listClients.FindIndex(x => x.id == _masterClient.id)] = _masterClient;
+        dictClients[_masterClient.id] = _masterClient;
     }
 
     public void StopWaitAllClientsStreamThread()
@@ -192,13 +210,12 @@ public class SocketController
             if (__readCount != 0)
             {
                 string __response = Encoding.ASCII.GetString(_bytes, 0, __readCount);
-
-                Console.WriteLine("Received data from Client [{0}]: \n{1}", p_clientData.id, __response);
+                
                 UnityEngine.Debug.LogFormat("Received data from Client [{0}]: \n{1}", p_clientData.id, __response);
                 p_clientData.clientToGetResponse = __response;
 
-                listClients[listClients.FindIndex(x => x.id == p_clientData.id)] = p_clientData;
-
+               // listClients[listClients.FindIndex(x => x.id == p_clientData.id)] = p_clientData;
+                dictClients[p_clientData.id] = p_clientData;
                 __networkStream.Flush();
             }        
         }
@@ -214,20 +231,33 @@ public class SocketController
             return;
         }
         _clientResponseCounter = 0;
-        for (int i = 0;i < listClients.Count;i++)
+        foreach (var content in dictClients)
         {
-            if (listClients[i].isServer == false)
+            if (content.Value.isServer == false)
             {
-                int __index = i;
                 ThreadStart __callbackThreadStart = delegate
                 {
-                    WaitClientStreamThenStopThread(listClients[__index], p_callbackFinish);
+                    WaitClientStreamThenStopThread(content.Value, p_callbackFinish);
                 };
                 Thread __newThread = new Thread(__callbackThreadStart);
                 __newThread.Start();
                 _listClientWaitForResponseThreads.Add(__newThread);
             }
         }
+        //for (int i = 0;i < listClients.Count;i++)
+        //{
+        //    if (listClients[i].isServer == false)
+        //    {
+        //        int __index = i;
+        //        ThreadStart __callbackThreadStart = delegate
+        //        {
+        //            WaitClientStreamThenStopThread(listClients[__index], p_callbackFinish);
+        //        };
+        //        Thread __newThread = new Thread(__callbackThreadStart);
+        //        __newThread.Start();
+        //        _listClientWaitForResponseThreads.Add(__newThread);
+        //    }
+        //}
     }
 
     // Lógica da espera da resposta do cliente, verifica se todos os clientes ja responderam. Se sim, retorna o callbackFinish
@@ -244,8 +274,8 @@ public class SocketController
 
             p_clientData.clientToGetResponse = __response;
 
-            listClients[listClients.FindIndex(x => x.id == p_clientData.id)] = p_clientData;
-
+           // listClients[listClients.FindIndex(x => x.id == p_clientData.id)] = p_clientData;
+            dictClients[p_clientData.id] = p_clientData;
             __networkStream.Flush();
 
             _clientResponseCounter++;
@@ -259,23 +289,54 @@ public class SocketController
 
     // Envia dados do socket para o cliente. O dado enviado precisa ser setado
     // na váriavel clientToSendResponse da struct ClientData
-    public void StreamToClients(Action p_callbackFinish)
+    public void StreamToClients()
     {
-        for (int i = 0;i < listClients.Count;i++)
+        List<string> __listKeys = dictClients.Keys.ToList<string>();
+        foreach (string key in __listKeys)
         {
-            Console.WriteLine("Sending data to Client [{0}]: \n{1}", listClients[i].id, listClients[i].clientToSendResponse);
-            if (listClients[i].isServer == true)
+            try
             {
-                if (onSocketResponseToMasterClient != null)
-                    onSocketResponseToMasterClient(listClients[i].clientToSendResponse);
-                continue;
-            }
-            string __response = listClients[i].clientToSendResponse;
-            byte[] __dataToSend = Encoding.ASCII.GetBytes(__response);
+                string __response = dictClients[key].clientToSendResponse;
 
-            NetworkStream __networkStream = listClients[i].tcpClient.GetStream();
-            __networkStream.Write(__dataToSend, 0, __dataToSend.Length);
-            __networkStream.Flush();
+                UnityEngine.Debug.Log("1");
+                if (__response == null || __response == string.Empty)
+                    continue;
+                UnityEngine.Debug.Log("2");
+                if (dictClients[key].isServer == true)
+                {
+                    if (onSocketResponseToMasterClient != null)
+                        onSocketResponseToMasterClient(__response);
+                    continue;
+                }
+
+                byte[] __dataToSend = Encoding.ASCII.GetBytes(__response);
+
+                NetworkStream __networkStream = dictClients[key].tcpClient.GetStream();
+                __networkStream.Write(__dataToSend, 0, __dataToSend.Length);
+                __networkStream.Flush();
+                UnityEngine.Debug.Log("3");
+            }
+            catch (SocketException p_exception)
+            {
+                UnityEngine.Debug.LogError(p_exception);
+            }
         }
+
+        //for (int i = 0;i < listClients.Count;i++)
+        //{
+        //    Console.WriteLine("Sending data to Client [{0}]: \n{1}", listClients[i].id, listClients[i].clientToSendResponse);
+        //    if (listClients[i].isServer == true)
+        //    {
+        //        if (onSocketResponseToMasterClient != null)
+        //            onSocketResponseToMasterClient(listClients[i].clientToSendResponse);
+        //        continue;
+        //    }
+        //    string __response = listClients[i].clientToSendResponse;
+        //    byte[] __dataToSend = Encoding.ASCII.GetBytes(__response);
+
+        //    NetworkStream __networkStream = listClients[i].tcpClient.GetStream();
+        //    __networkStream.Write(__dataToSend, 0, __dataToSend.Length);
+        //    __networkStream.Flush();
+        //}
     }
 }

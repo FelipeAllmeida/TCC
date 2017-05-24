@@ -39,6 +39,7 @@ public class TCPConnector
     {
         try
         {
+            UnityEngine.Debug.Log(p_ipAddress + " | " + p_port);
             _tcpClient = new TcpClient(p_ipAddress, p_port);
             _networkStream = _tcpClient.GetStream();
             _streamWriter = new StreamWriter(_networkStream);
@@ -49,8 +50,8 @@ public class TCPConnector
                 p_callbackSuccess();
         }
         catch (SocketException p_socketException)
-        {
-            UnityEngine.Debug.Log("Socket error:" + p_socketException);
+        {        
+            UnityEngine.Debug.Log(p_socketException.ErrorCode + ":" + p_socketException);
             if (p_callbackFailed != null)
                 p_callbackFailed();
         }

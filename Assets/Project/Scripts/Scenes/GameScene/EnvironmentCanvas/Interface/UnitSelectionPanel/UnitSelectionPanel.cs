@@ -77,9 +77,7 @@ public class UnitSelectionPanel : UIUnitPanel
         float __height = _dimensions.y;
 
         float __widthOffset = __width * 0.1f;
-        float __heightOffset = __height * 0.1f;
-
-       
+        float __heightOffset = __height * 0.1f;       
 
         int __buttonsAxisX = Mathf.FloorToInt(__width / (_actionButtonDimensions.x + __widthOffset));
         int __buttonsAxisY = Mathf.FloorToInt(__height / (_actionButtonDimensions.y + __heightOffset));
