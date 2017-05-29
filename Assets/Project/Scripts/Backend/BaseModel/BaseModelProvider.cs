@@ -400,6 +400,7 @@ Debug.Log("Update:" + __query);
                         while (_dbReader.Read())
                         {
                             Dictionary<string, string> __dictRowLoaded = new Dictionary<string, string>();
+
                             for (int i = 0;i < p_arraySelectKeys.Length;i++)
                             {
                                 string __stringRow = string.Empty;
@@ -411,7 +412,7 @@ Debug.Log("Update:" + __query);
                                 {
                                     __stringRow = _dbReader.GetValue(i).ToString();
                                 }
-                                __dictRowLoaded.Add(p_arraySelectKeys[i], __stringRow);
+                                __dictRowLoaded.Add(p_arraySelectKeys[i], __stringRow);                       
                             }
                             __listDataLoaded.Add(__dictRowLoaded);
                         }

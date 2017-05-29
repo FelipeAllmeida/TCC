@@ -11,8 +11,13 @@ public class EntityVO
     public float maxHealth;
     public float speed;
     public float range;
+    public float damage;
+    public float attackSpeed;
     public float timeToSpawn;
 
+    public Vector3 size;
+
+    public int resourceCapacity;
     public int resourceCost;
 
     public List<CommandType> listAvaiableCommands;

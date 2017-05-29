@@ -5,17 +5,17 @@ using UnityEngine;
 public class FakeEntity : MonoBehaviour
 {
     #region Private Data
-    private int _constructorID;
+    private string _constructorID;
     private string _entityType;
     #endregion
 
-    public void AInitialize(int p_constructorID, string p_type)
+    public void AInitialize(string p_constructorID, string p_type)
     {
         _constructorID = p_constructorID;
         _entityType = p_type;
     }
 
-    public int GetConstructorID()
+    public string GetConstructorID()
     {
         return _constructorID;
     }

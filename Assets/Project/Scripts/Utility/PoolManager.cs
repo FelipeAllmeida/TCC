@@ -2,14 +2,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public enum PoolType
 {
-    ENTITY_BUILDING_CENTER,
-    ENTITY_UNIT_WORKER,
+    ENTITY,
     FAKE_ENTITY,
     DYNAMIC_ACTION_BUTTON,
-    LOBBY_PLAYER_FIELD
+    LOBBY_PLAYER_FIELD,
+    PLAYER
 }
 
 [Serializable]
@@ -71,8 +72,8 @@ public class PoolManager : MonoBehaviour
             PoolData __poolData = _listPoolData[i];
             __poolData.prefabParent = new GameObject(__poolData.poolType.ToString());
             __poolData.prefabParent.transform.SetParent(_parent.transform);
-           _dictPoolInstances.Add(__poolData.poolType, __poolData);
-        }
+            _dictPoolInstances.Add(__poolData.poolType, __poolData);
+        }        
     }
 
     public GameObject Spawn(PoolType p_poolType, Transform p_parent = null, bool p_adaptToRenderer = false)

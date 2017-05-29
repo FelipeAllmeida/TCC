@@ -2,11 +2,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
+using Framework;
 
 public class Environment : MonoBehaviour 
 {
     #region Event Data
     public event Action<Entity> onRequestSetInterfaceSelectedUnit;
+    public event Action<Vector3> onRequestSetCameraFocusObject;
     #endregion
 
     #region Private Serialized-Data
@@ -17,24 +20,39 @@ public class Environment : MonoBehaviour
     private int _mainPlayer;
     private Dictionary<int, Player> _dictPlayers = new Dictionary<int, Player>();
     private InputManager _inputManager;
+    private int _currentConnectedPlayers;
     #endregion
 
     public void AInitialize()
     {
         _worldManager.Initialize(1000, 7, 1000);
         InitializeInputManager();
-        InitializeDictPlayers();
+        Timer.WaitSeconds(1f, delegate
+        {
+            InitializeDictPlayers();
+        });
     }
 
-    #region TEST-ONLY
     private void InitializeDictPlayers()
     {
-        _dictPlayers.Add(_mainPlayer, new Player());
+        GameObject[] __listPlayersObjects = GameObject.FindGameObjectsWithTag("Player");
+        _mainPlayer = -1;
+        for (int i = 0;i < __listPlayersObjects.Length;i++)
+        {
+            Player __player = __listPlayersObjects[i].GetComponent<Player>();
+            __player.SetTeam(i);
+            __player.transform.SetParent(transform);
+            if (__player.GetIsLocalPlayer())
+            {
+                _mainPlayer = i;
+            }
+            _dictPlayers.Add(i, __player);        
+        }
+        Vector3 __randomStartPos = new Vector3(UnityEngine.Random.Range(-40f, 40f), 0f, UnityEngine.Random.Range(-40f, 40f));
+        _dictPlayers[_mainPlayer].Initialize(_mainPlayer, __randomStartPos);
         InitializeMainPlayerEvents();
-        _dictPlayers[_mainPlayer].Initialize(_mainPlayer, Vector3.zero);
+        if (onRequestSetCameraFocusObject != null) onRequestSetCameraFocusObject(__randomStartPos);
     }
-
-    #endregion
 
     private void InitializeMainPlayerEvents()
     {
@@ -64,13 +82,14 @@ public class Environment : MonoBehaviour
         };
     }
 
-    public void OnExecuteMainPlayerTargetUnitCommand(int p_entityID, CommandType p_commandType, params object[] p_args)
+    public void OnExecuteMainPlayerTargetUnitCommand(string p_entityID, CommandType p_commandType, params object[] p_args)
     {
         _dictPlayers[_mainPlayer].ExecuteTargetUnitCommnad(p_entityID, p_commandType, p_args);
     }
 
     public void AUpdate()
     {
+        
         if (_inputManager != null)
         {
             _inputManager.CheckInput();        

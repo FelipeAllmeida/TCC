@@ -9,7 +9,7 @@ using UnityEngine.UI;
 public class UnitSelectionPanel : UIUnitPanel 
 {
     #region Events
-    public event Action<int, CommandType, object[]> onClickCommand; 
+    public event Action<string, CommandType, object[]> onClickCommand; 
     #endregion
 
     #region Private Serialized-Data

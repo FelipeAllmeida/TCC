@@ -17,13 +17,13 @@ public class MoveCommand : Command
     {
         _previousPosition = _actor.transform.position;
 
-        (_actor as EntityUnit).GetNavMeshAgent().destination = _targetPosition;
+        _actor.GetNavMeshAgent().destination = _targetPosition;
         return CommandType.MOVE;
     }
 
     public override void AUpdate()
     {
-        if (((_actor as EntityUnit).GetNavMeshAgent().remainingDistance < (_actor as EntityUnit).GetRange()))
+        if ((_actor.GetNavMeshAgent().remainingDistance < _actor.GetRange()))
         {
             if (_actionReachedDestination != null)
             {
@@ -35,8 +35,8 @@ public class MoveCommand : Command
 
     public override void Stop()
     {  
-        (_actor as EntityUnit).GetNavMeshAgent().isStopped = true;
-        (_actor as EntityUnit).GetNavMeshAgent().ResetPath();
+        _actor.GetNavMeshAgent().isStopped = true;
+        _actor.GetNavMeshAgent().ResetPath();
         _actionReachedDestination = null;
     }
 
@@ -44,7 +44,7 @@ public class MoveCommand : Command
     {
         if (_actor.GetEntityType() == EntityType.UNIT)
         {
-            (_actor as EntityUnit).GetNavMeshAgent().destination = _previousPosition;
+            _actor.GetNavMeshAgent().destination = _previousPosition;
         }
     }
 

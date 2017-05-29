@@ -32,6 +32,20 @@ public class CameraManager : MonoBehaviour
         _worldDimensions = p_worldDimensions;
     }
 
+    public void SetCameraPosToObject(Vector3 p_target)
+    {
+        Vector3 __newCameraPosition;
+        __newCameraPosition.x = Mathf.Clamp(p_target.x, -_worldDimensions.x / 2f, _worldDimensions.x / 2f);
+        __newCameraPosition.z = Mathf.Clamp(p_target.z - 10f, -_worldDimensions.z / 2f, _worldDimensions.z / 2f);
+        __newCameraPosition.y = 10f;
+        Vector3 __startCameraPosition = _mainCamera.transform.position;
+        _cameraPositionNodule = ATween.Vector3To(__startCameraPosition, __newCameraPosition, 0.1f, TweenEase.LINEAR, delegate (Vector3 p_value)
+        {
+            _mainCamera.transform.position = p_value;
+            _uiCamera.transform.position = p_value;
+        });
+    }
+
     public void UpdateMainCameraPosition()
     {
         Vector2 __mousePosition = Input.mousePosition;

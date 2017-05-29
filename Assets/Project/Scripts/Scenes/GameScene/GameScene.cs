@@ -33,7 +33,12 @@ public class GameScene : State<TCC.StateType>
             _environmentCanvas.SetInterfaceSelectedUnit(p_unit);
         };
 
-        _environmentCanvas.onClickInterfaceCommand += delegate (int p_entityID, CommandType p_commandType, object[] p_args)
+        _environment.onRequestSetCameraFocusObject += delegate (Vector3 p_focusObjectPos)
+        {
+            _cameraManager.SetCameraPosToObject(p_focusObjectPos);
+        };
+
+        _environmentCanvas.onClickInterfaceCommand += delegate (string p_entityID, CommandType p_commandType, object[] p_args)
         {
             _environment.OnExecuteMainPlayerTargetUnitCommand(p_entityID, p_commandType, p_args);
         };

@@ -35,16 +35,13 @@ public class EntityDisplayPanel : UIUnitPanel
         {
             if (_selectedEntity.GetEntityType() == EntityType.BUILDING)
             {
-                if ((_selectedEntity as EntityBuilding).GetIsBuilding() == true)
-                {
-                    ActivateEntityBuildedDisplay(true);
-                    UpdateEntityBuildedDisplay();
-                }
-                else
-                {
-                    ActivateEntityBuildedDisplay(false);
-                }               
+                ActivateEntityBuildedDisplay(_selectedEntity.GetIsBuilding());
+                UpdateEntityBuildedDisplay();
             }
+            else
+            {
+                ActivateEntityBuildedDisplay(false);
+            }               
         }
     }
 
@@ -63,8 +60,8 @@ public class EntityDisplayPanel : UIUnitPanel
             _entityName.text = p_entity.GetEntityName();
 
             if (p_entity.GetEntityType() == EntityType.BUILDING)
-            {
-                ActivateEntityBuildedDisplay((p_entity as EntityBuilding).GetIsBuilding());
+            {                
+                ActivateEntityBuildedDisplay(p_entity.GetIsBuilding());
             }
             else
             {
@@ -84,7 +81,7 @@ public class EntityDisplayPanel : UIUnitPanel
 
     private void UpdateEntityBuildedDisplay()
     {
-        float __percentage = (_selectedEntity as EntityBuilding).GetUnitBuildPercentage();
+        float __percentage = _selectedEntity.GetUnitBuildPercentage();
         _entityBuildedSlider.value = __percentage;
         _entityBuildedPercentage.text = (__percentage * 100f).ToString("0.00") + "%";
     }

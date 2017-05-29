@@ -20,6 +20,7 @@ public class DataManager
     }
     #endregion
 
+    public static int connectedPlayers = 0;
     #region Private Data
     private Dictionary<string, EntityVO> _dictEntityVO;
 
@@ -28,7 +29,6 @@ public class DataManager
     #region DAO
     private EntityDAO _entityDAO;
     #endregion
-
 
     #endregion
 

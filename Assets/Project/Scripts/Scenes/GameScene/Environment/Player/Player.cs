@@ -2,31 +2,62 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
+using UnityEngine.Networking;
 
-public class Player 
+public class Player : NetworkBehaviour
 {
     #region Event Data
     public event Action<Entity> onRequestShowSelectUnitUI;
     #endregion
 
+    #region Public Get-Only
+    public int team
+    {
+        get
+        {
+            return _team;
+        }
+    }
+    #endregion
+
     #region Private Data
-    private Dictionary<int, Entity> _dictEntity;
+    private Dictionary<string, Entity> _dictEntity = new Dictionary<string, Entity>();
     private Entity _currentSelectedUnit;
     private FakeEntity _fakeEntity;
 
+    private string _playerName;
     private int _team;
     private int _idCounter = 0;
+
     private bool _isSpawningEntityBuilding = false;
+
+    private Color _playerColor;
 
     // private List<Unit> _listSelectedUnits = new List<Unit>();
     #endregion
 
+    public void SetPlayerNameAndColor(string p_name, Color p_color)
+    {
+        Debug.Log("PlayerName: " + p_name + " | " + p_color);
+        _playerName = p_name;
+        _playerColor = p_color;
+    }
+    
     public void Initialize(int p_team, Vector3 p_startPosition)
     {
         _team = p_team;
-        #region TEST ONLY
-        CreateNewEntity("BUILDING_CENTER", Vector3.zero);
-        #endregion
+        CmdCreateNewEntity(netId, "BUILDING_CENTER", p_startPosition);
+    }
+
+    public void SetTeam(int p_team)
+    {
+        _team = p_team;
+    }
+
+    public bool GetIsLocalPlayer()
+    {
+        return isLocalPlayer;
     }
 
     public void AUpdate()
@@ -42,20 +73,22 @@ public class Player
         }
     }
 
-    private void CreateNewEntity(string p_entitySpecificType, Vector3 p_position)
+    [Command]
+    private void CmdCreateNewEntity(NetworkInstanceId p_id, string p_entitySpecificType, Vector3 p_position)
     {
-        Debug.Log("Create New Entity -> " + p_entitySpecificType + ": " + p_entitySpecificType);
-        Entity __entity = SpawnUnit(p_entitySpecificType);
-        __entity.Initialize(_idCounter++, _team, DataManager.instance.GetEntityVO(p_entitySpecificType));
-        __entity.transform.position = p_position;
-        ListenEntityEventsBuilding(__entity);
-        WorldManager.AddEntityToFloor(__entity.GetCurrentFloor(), __entity);
-        AddEntityToDict(__entity);
+        Debug.Log("Create New Entity -> " + p_entitySpecificType);
+        SpawnUnit(p_id, p_entitySpecificType, p_position);        
     }
 
-    private void ListenEntityEventsBuilding(Entity p_entity)
+    [ClientRpc]
+    private void RpcListenEntityEvents(GameObject p_entity)
     {
-        p_entity.onRequestCreateEntity += CreateNewEntity;
+        p_entity.GetComponent<Entity>().onRequestCreateEntity += VoidzinhoDeBosta;
+    }
+
+    private void VoidzinhoDeBosta(string p_entitySpecificType, Vector3 p_startPos)
+    {
+        CmdCreateNewEntity(netId, p_entitySpecificType, p_startPos);
     }
 
     public void HandleMouseLeftClick(InputInfo p_inputInfo)
@@ -66,21 +99,17 @@ public class Player
             float __distance = Vector3.Distance(_dictEntity[_fakeEntity.GetConstructorID()].GetEntityPosition(), __buildPos);
             Action __callbackBuildEntity = delegate
             {
-                Debug.Log("__callbackBuildEntity");
-                _dictEntity[_fakeEntity.GetConstructorID()].AddUnitToSpawnList(_fakeEntity.GetEntityType());
+                _dictEntity[_fakeEntity.GetConstructorID()].AddUnitToSpawnList(_fakeEntity.GetEntityType(), __buildPos);
             };
             PoolManager.instance.Despawn(PoolType.FAKE_ENTITY, _fakeEntity.gameObject);
             _isSpawningEntityBuilding = false;
-            Debug.Log("Distance: " + __distance);
             if (__distance < _dictEntity[_fakeEntity.GetConstructorID()].GetRange())
             {
-                Debug.Log("(__distance < _dictEntity[_fakeEntity.GetConstructorID()].GetRange()");
                 __callbackBuildEntity();
             }
             else
             {
-                Debug.Log("else");
-                (_dictEntity[_fakeEntity.GetConstructorID()] as EntityUnit).MoveTo(__buildPos, __callbackBuildEntity);
+                _dictEntity[_fakeEntity.GetConstructorID()].MoveTo(__buildPos, __callbackBuildEntity);
             }
         }
         else
@@ -105,13 +134,14 @@ public class Player
         {
             if (_currentSelectedUnit != null)
             {
+                Debug.Log("entity team: " + _currentSelectedUnit.GetUnitTeam() + " | player team: " + _team);
                 if (_currentSelectedUnit.GetUnitTeam() == _team)
                 {
                     if (_currentSelectedUnit.GetEntityType() == EntityType.UNIT)
                     {
                         if (p_inputInfo.hit != null && (p_inputInfo.hit.tag == "Entity" || p_inputInfo.hit.tag == "Ground"))
                         {
-                            (_currentSelectedUnit as EntityUnit).MoveTo(p_inputInfo.worldClickPoint);                
+                            _currentSelectedUnit.MoveTo(p_inputInfo.worldClickPoint);                
                         }
                     }
                 }
@@ -119,18 +149,24 @@ public class Player
         }
     }
 
-    public void ExecuteTargetUnitCommnad(int p_unitID, CommandType p_commandType, params object[] p_args)
+    public void ExecuteTargetUnitCommnad(string p_unitID, CommandType p_commandType, params object[] p_args)
     {
+        Debug.Log("ExecuteTargetUnitCommnad: " + p_unitID);
+        Debug.Log("_dictEntity.Count: " + _dictEntity.Count);
+        foreach (var k in _dictEntity)
+        {
+            Debug.Log("entity id: " + k.Key + " |");
+        }
         switch (p_commandType)
         {
             case CommandType.BUILD:
                 if (_dictEntity[p_unitID].GetEntityType() == EntityType.BUILDING)
                 {
-                    (_dictEntity[p_unitID] as EntityBuilding).AddUnitToSpawnList(p_args[0].ToString());
+                    _dictEntity[p_unitID].AddUnitToSpawnList(p_args[0].ToString(), _dictEntity[p_unitID].GetEntityPosition());
                 }
                 else if (_dictEntity[p_unitID].GetEntityType() == EntityType.UNIT)
                 {
-                    Debug.Log("Spawn Fake Entity");
+                    Debug.Log("Spawn Fake Entity"); 
                     if (_isSpawningEntityBuilding == false)
                     {
                         _fakeEntity = PoolManager.instance.Spawn(PoolType.FAKE_ENTITY).GetComponent<FakeEntity>();
@@ -144,26 +180,58 @@ public class Player
         }
     }
 
-    private void AddEntityToDict(Entity p_entity)
+
+    private Entity SpawnUnit(NetworkInstanceId p_id, string p_entitySpecificType, Vector3 p_position)
+    {
+        EntityVO __entityVO = DataManager.instance.GetEntityVO(p_entitySpecificType);
+        Debug.Log("SpawnUnit: " + p_entitySpecificType);
+        if (__entityVO != null)
+        {
+            bool __isBuilding = (__entityVO.entityType == EntityType.BUILDING) ? true : false;
+            Debug.Log("SpawnUnit is Building: " + __isBuilding);
+            Entity __entity = PoolManager.instance.Spawn(PoolType.ENTITY, transform, __isBuilding).GetComponent<Entity>();
+            Debug.Log("Who im I: " + gameObject.name);
+            __entity.transform.SetParent(transform);
+            __entity.transform.position = p_position;
+            
+            __entity.parentNetId = p_id;
+            NetworkServer.Spawn(__entity.gameObject);
+            __entity.RpcInitialize(Guid.NewGuid().ToString(), _playerColor, __entityVO.entitySpecificType);
+            RpcAddEntityToDict(__entity.gameObject);
+            RpcListenEntityEvents(__entity.gameObject);
+            return __entity;    
+        }
+        return null;
+    }
+
+    [ClientRpc]
+    private void RpcAddEntityToDict(GameObject p_entity)
     {
         if (_dictEntity == null)
         {
-            _dictEntity = new Dictionary<int, Entity>();
+            _dictEntity = new Dictionary<string, Entity>();
         }
-
-        _dictEntity.Add(p_entity.GetEntityID(), p_entity);
-    }
-
-    private Entity SpawnUnit(string p_entityType)
-    {
-        switch (p_entityType)
-        {
-            case "UNIT_WORKER":
-                return PoolManager.instance.Spawn(PoolType.ENTITY_UNIT_WORKER, null, false).GetComponent<Entity>();
-            case "BUILDING_CENTER":
-                return PoolManager.instance.Spawn(PoolType.ENTITY_BUILDING_CENTER, null, true).GetComponent<Entity>();
-            default:
-                return null;
-        }
+        _dictEntity.Add(p_entity.GetComponent<Entity>().GetEntityID(), p_entity.GetComponent<Entity>());
     }
 }
+
+
+
+//[Command]
+//void CmdFire(Vector3 origin, Vector3 direction)
+//{
+//    shotEffects.PlayShotEffects();
+//    //transform.rotation;
+//    // Create the Bullet from the Bullet Prefab
+//    GameObject bullet = Instantiate(bulletPrefab, bulletSpawn.position, weaponsLocation.transform.rotation);
+//    //do things
+//    bullet.GetComponent<Bullet>().setPlayerParent(this);
+//    // Add velocity to the bullet
+//    bullet.GetComponent<Rigidbody>().velocity = bullet.transform.forward * bulletVelocity;
+
+//    // Spawn the bullet on the Clients
+//    NetworkServer.Spawn(bullet);
+
+//    // Destroy the bullet after 2 seconds
+//    Destroy(bullet, 10.0f);
+//}

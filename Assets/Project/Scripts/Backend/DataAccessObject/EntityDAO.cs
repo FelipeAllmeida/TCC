@@ -13,28 +13,33 @@ public class EntityDAO : DataAccessObject
     {
         string __table = "Entity";
 
-        string[] __arraySelectKeys = new string[] { "entityName", "type", "entityType", "maxHealth", "speed", "range", "timeToSpawn", "resourceCost" };
+        string[] __arraySelectKeys = new string[] { "entityName", "type", "entityType", "maxHealth", "speed", "range", "damage", "attackSpeed", 
+         "timeToSpawn", "sizeX", "sizeY", "sizeZ", "resourceCapacity", "resourceCost" };
 
         Dictionary<string, string> __dictWhere = new Dictionary<string, string>();
         __dictWhere.Add("1", "1");
 
         SelectDataFromTableAsync(SelectType.NONE, true, __table, __arraySelectKeys, __dictWhere, delegate (List<Dictionary<string, string>> p_listData)
         {
-            List<EntityVO> __listEntityVO = new List<EntityVO>();
-
-            
+            List<EntityVO> __listEntityVO = new List<EntityVO>();            
 
             for (int i = 0; i < p_listData.Count;i++)
             {
                 EntityVO __newEntityVO = new EntityVO();
-
                 __newEntityVO.entityName = p_listData[i]["entityName"];
                 __newEntityVO.entityType = (EntityType)Enum.Parse(typeof(EntityType), p_listData[i]["type"]);
                 __newEntityVO.entitySpecificType = p_listData[i]["entityType"];       
                 __newEntityVO.maxHealth = float.Parse(p_listData[i]["maxHealth"]);
                 __newEntityVO.speed = float.Parse(p_listData[i]["speed"]);
                 __newEntityVO.range = float.Parse(p_listData[i]["range"]);
+                __newEntityVO.damage = float.Parse(p_listData[i]["damage"]);
+                __newEntityVO.attackSpeed = float.Parse(p_listData[i]["attackSpeed"]);
                 __newEntityVO.timeToSpawn = float.Parse(p_listData[i]["timeToSpawn"]);
+                float __scaleX = float.Parse(p_listData[i]["sizeX"]);
+                float __scaleY = float.Parse(p_listData[i]["sizeY"]);
+                float __scaleZ = float.Parse(p_listData[i]["sizeZ"]);
+                __newEntityVO.size = new UnityEngine.Vector3(__scaleX, __scaleY, __scaleZ);
+                __newEntityVO.resourceCapacity = Int32.Parse(p_listData[i]["resourceCapacity"]);
                 __newEntityVO.resourceCost = Int32.Parse(p_listData[i]["resourceCost"]);
 
                 __newEntityVO.listAvaiableCommands = GetListCommandByEntity(__newEntityVO.entitySpecificType);

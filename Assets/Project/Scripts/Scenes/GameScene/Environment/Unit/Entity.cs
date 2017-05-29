@@ -2,6 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
+using UnityEngine.AI;
 using Framework;
 
 public enum UnitMovementType
@@ -16,18 +18,20 @@ public enum EntityType
     UNIT
 }
 
-public abstract class Entity : MonoBehaviour 
+public class Entity : NetworkBehaviour 
 {
     #region Events
+    public event Action<Entity> onEntityCreated;
     public event Action<string, Vector3> onRequestCreateEntity;
     #endregion
 
     #region Protected Data
     [SerializeField] private EntityType _entityType;
-    [SerializeField] protected int _id;
-    [SerializeField] protected int _team;
-    [SerializeField] protected int _currentFloor = 0;
+    [SyncVar] private string _id;
+    [SerializeField] private int _team;
+    [SerializeField] private int _currentFloor = 0;
 
+    [SyncVar] public NetworkInstanceId parentNetId;
 
     protected float _currentHealth;
     protected float _maxHealth;
@@ -35,12 +39,14 @@ public abstract class Entity : MonoBehaviour
 
     protected string _entityName;
 
-    protected EntityVO _entityVO;
+    protected EntityVO __entityVO;
 
 
     private TweenNodule _currentUnitCreationNodule;
 
     private List<string> _listEntitiesToSpawn = new List<string>();
+
+    private NavMeshAgent _navMeshAgent;
 
     private float _unitBuildPercentage;
 
@@ -55,50 +61,79 @@ public abstract class Entity : MonoBehaviour
     [SerializeField] protected List<string> _listAvaiableEntities;
     #endregion
 
-    public virtual void Initialize(int p_unitID, int p_unitTeam, EntityVO p_entityVO)
+    public override void OnStartClient()
     {
+        GameObject parentObject = ClientScene.FindLocalObject(parentNetId);
+        transform.SetParent(parentObject.transform);
+        _team = parentObject.GetComponent<Player>().team;
+    }
+
+    [ClientRpc]
+    public void RpcInitialize(string p_unitID, Color p_color, string p_entitySpecificType)
+    {
+        Debug.Log("Initialize Entity: " + p_unitID + " | team : " + _team + " | " + p_color);
         _id = p_unitID;
-        _team = p_unitTeam;
-        _entityVO = p_entityVO;
-        InitializeEntityData();
 
+        InitializeEntityData(p_entitySpecificType, p_color);
     }
 
-    protected void InitializeEntityData()
+    private void InitializeEntityData(string p_entitySpecificType, Color p_entityColor)
     {
-        SetEntityName(_entityVO.entityName);
-        _commandController.SetListAvaiableCommands(_entityVO.listAvaiableCommands);
-        _listAvaiableEntities = _entityVO.listAvaiableEntitiesToBuild;
-        _currentHealth = _maxHealth = _entityVO.maxHealth;
-        _range = _entityVO.range;
+        __entityVO = DataManager.instance.GetEntityVO(p_entitySpecificType);
+        Debug.Log("CmdInitializeEntityData");
+        SetEntityName(__entityVO.entityName);
+        SetEntityColor(p_entityColor);
+        Debug.Log("_entityVO listAvaiableCommands Count: " + __entityVO.listAvaiableCommands.Count);
+        _commandController.SetListAvaiableCommands(__entityVO.listAvaiableCommands);
+        Debug.Log("_entityVO builds Count: " + __entityVO.listAvaiableEntitiesToBuild.Count);
+        _listAvaiableEntities = __entityVO.listAvaiableEntitiesToBuild;
+        _currentHealth = _maxHealth = __entityVO.maxHealth;
+        _range = __entityVO.range;
+        _entityType = __entityVO.entityType;
+        transform.localScale = __entityVO.size;
+
+        switch (__entityVO.entityType)
+        {
+            case EntityType.BUILDING:
+                gameObject.AddComponent<NavMeshSourceTag>();
+                gameObject.transform.position += new Vector3(0f, GetComponent<Renderer>().bounds.extents.y, 0f);
+                break;
+            case EntityType.UNIT:        
+                _navMeshAgent = gameObject.AddComponent<NavMeshAgent>();
+                _navMeshAgent.speed = __entityVO.speed;
+                _navMeshAgent.angularSpeed = 360f;
+                _navMeshAgent.acceleration = 10f;
+                break;
+        }
     }
 
-    public virtual void AUpdate()
+    public void AUpdate()
     {
         _commandController.AUpdate();
     }
 
-    public virtual int GetUnitTeam()
+    public int GetUnitTeam()
     {
         return _team;
     }
 
-    public virtual int GetEntityID()
+    public string GetEntityID()
     {
         return _id;
     }
 
-    public virtual float GetRange()
+    public float GetRange()
     {
         return _range;
     }
 
-    protected virtual void SetEntityName(string p_name)
+    protected void SetEntityName(string p_name)
     {
         _entityName = p_name;
+        gameObject.name = p_name;
     }
 
-    public virtual void SetEntityPosition(Vector3 p_position)
+    public void SetEntityPosition(Vector3 p_position)
     {
         if (_entityType == EntityType.BUILDING)
         {
@@ -107,9 +142,21 @@ public abstract class Entity : MonoBehaviour
         transform.position = p_position;
     }
 
+    public void SetEntityColor(Color p_color)
+    {
+        GetComponent<Renderer>().material.color = p_color;
+    }
+
     public Vector3 GetEntityPosition()
     {
         return transform.position;
+    }
+
+    public Vector3 GetEntitySpawnPosition()
+    {
+        Vector3 __spawnPosition = transform.position;
+        __spawnPosition.z -= GetComponent<Renderer>().bounds.size.z *2;
+        return __spawnPosition;
     }
 
     public virtual string GetEntityName()
@@ -144,7 +191,7 @@ public abstract class Entity : MonoBehaviour
 
 
     #region Spawn Entities
-    public void AddUnitToSpawnList(string p_unitType)
+    public void AddUnitToSpawnList(string p_unitType, Vector3 p_position)
     {
         _listEntitiesToSpawn.Add(p_unitType);
         SpawnUnitList();
@@ -232,6 +279,25 @@ public abstract class Entity : MonoBehaviour
                 onRequestChangeStep(p_stepType);
         }
     }
+
+    #region Commands
+
+    public void MoveTo(Vector3 p_targetPosition, Action p_callbackFinish = null)
+    {
+        _commandController.MoveTo(this, p_targetPosition, p_callbackFinish);
+    }
+
+    public void StopMoving()
+    {
+        _navMeshAgent.isStopped = true;
+        _navMeshAgent.ResetPath();
+    }
+
+    public NavMeshAgent GetNavMeshAgent()
+    {
+        return _navMeshAgent;
+    }
+    #endregion
 }
 
 

@@ -6,7 +6,7 @@ using UnityEngine;
 public class EnvironmentCanvas : MonoBehaviour 
 {
     #region Events
-    public event Action<int, CommandType, object[]> onClickInterfaceCommand;
+    public event Action<string, CommandType, object[]> onClickInterfaceCommand;
     #endregion
 
     #region Private Serialized-Data
@@ -27,7 +27,7 @@ public class EnvironmentCanvas : MonoBehaviour
     private void InitializeInterface()
     {
         _interface.AInitialize();
-        _interface.onClickCommand += delegate (int p_entityID, CommandType p_commandType, object[] p_args)
+        _interface.onClickCommand += delegate (string p_entityID, CommandType p_commandType, object[] p_args)
         {
             if (onClickInterfaceCommand != null) onClickInterfaceCommand(p_entityID, p_commandType, p_args);
         };

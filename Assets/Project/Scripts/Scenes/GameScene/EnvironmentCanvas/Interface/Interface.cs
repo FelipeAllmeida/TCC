@@ -7,7 +7,7 @@ using UnityEngine.UI;
 public class Interface : MonoBehaviour 
 {
     #region Events
-    public event Action<int, CommandType, object[]> onClickCommand;
+    public event Action<string, CommandType, object[]> onClickCommand;
     #endregion
 
     [Header("Interface Panels")]
@@ -23,7 +23,7 @@ public class Interface : MonoBehaviour
     private void InitializeSelectionPanel()
     {
         _unitSelectionPanel.Initialize();
-        _unitSelectionPanel.onClickCommand += delegate (int p_entityID, CommandType p_commandType, object[] p_args)
+        _unitSelectionPanel.onClickCommand += delegate (string p_entityID, CommandType p_commandType, object[] p_args)
         {
             if (onClickCommand != null) onClickCommand(p_entityID, p_commandType, p_args);
         };
@@ -46,6 +46,11 @@ public class Interface : MonoBehaviour
     {
         _unitSelectionPanel.SetSelectedUnit(p_unit);
         _entityDisplayPanel.SetSelectedUnit(p_unit);
+    }
+
+    public void ShowDisplayBuildingUnitUI(bool p_enabled)
+    {
+        _entityDisplayPanel.ActivateEntityBuildedDisplay(p_enabled);
     }
 
     public void DeselectUnit(Entity p_unit)

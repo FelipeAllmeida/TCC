@@ -217,8 +217,13 @@ public class LocalConnector
         Debug.Log("CreateDatabaseLogicForWindows");
         if (Directory.Exists(_windowsDBPath) == true)
         {
-            Debug.Log("Directory Exists: " + _windowsDBPath);
-            //if (File.Exists(_windowsDBPath + "/" +_dbName) == true)
+            //Debug.Log("Directory Exists: " + _windowsDBPath);
+            //if (File.Exists(_windowsDBPath + "/" + _dbName) == true)
+            //{
+            //    File.Delete(_windowsDBPath + "/" + _dbName);
+            //    File.Copy(Application.streamingAssetsPath + "/" + _dbName, _windowsDBPath + "/" + _dbName, true);
+            //}
+            /*//if (File.Exists(_windowsDBPath + "/" +_dbName) == true)
             //{
             //    if (File.Exists(_windowsDBPath + "/" +_dbNameDecrypted) == true)
             //    {
@@ -267,7 +272,7 @@ public class LocalConnector
             //    {
             //        SecureFile.DecryptFile(_windowsDBPath + "/" +_dbName, _windowsDBPath + "/" +_dbNameDecrypted);
             //    }
-            //}
+            //}*/
         }
         else
         {
