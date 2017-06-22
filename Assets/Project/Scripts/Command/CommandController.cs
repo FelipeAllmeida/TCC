@@ -7,6 +7,7 @@ public enum CommandType
 {
     NONE,
     MOVE,
+    GATHER,
     BUILD
 }
 
@@ -33,6 +34,15 @@ public class CommandController : MonoBehaviour
         if (_listCommandType.Contains(CommandType.MOVE) == true)
         {
             _command = new MoveCommand(p_actor, p_targetPosition, p_callbackFinish);
+            _currentCommand = _command.Execute();
+        }
+    }
+
+    public void GatherResource(Entity p_actor, Resource p_resource, Action p_callbackFinish = null)
+    {
+        if (_listCommandType.Contains(CommandType.GATHER) == true)
+        {
+            _command = new GatherCommand(p_actor, p_resource, p_callbackFinish);
             _currentCommand = _command.Execute();
         }
     }

@@ -83,10 +83,10 @@ public class Player : NetworkBehaviour
     [ClientRpc]
     private void RpcListenEntityEvents(GameObject p_entity)
     {
-        p_entity.GetComponent<Entity>().onRequestCreateEntity += VoidzinhoDeBosta;
+        p_entity.GetComponent<Entity>().onRequestCreateEntity += HandleCmdCreateNewEntity;
     }
 
-    private void VoidzinhoDeBosta(string p_entitySpecificType, Vector3 p_startPos)
+    private void HandleCmdCreateNewEntity(string p_entitySpecificType, Vector3 p_startPos)
     {
         CmdCreateNewEntity(netId, p_entitySpecificType, p_startPos);
     }
@@ -109,7 +109,8 @@ public class Player : NetworkBehaviour
             }
             else
             {
-                _dictEntity[_fakeEntity.GetConstructorID()].MoveTo(__buildPos, __callbackBuildEntity);
+                _dictEntity[_fakeEntity.GetConstructorID()].SetEntityReachedDestinationCallback(__callbackBuildEntity);
+                CmdMoveEntity(_dictEntity[_fakeEntity.GetConstructorID()].gameObject, __buildPos);
             }
         }
         else
@@ -141,7 +142,7 @@ public class Player : NetworkBehaviour
                     {
                         if (p_inputInfo.hit != null && (p_inputInfo.hit.tag == "Entity" || p_inputInfo.hit.tag == "Ground"))
                         {
-                            _currentSelectedUnit.MoveTo(p_inputInfo.worldClickPoint);                
+                            CmdMoveEntity(_currentSelectedUnit.gameObject, p_inputInfo.worldClickPoint);
                         }
                     }
                 }
@@ -204,6 +205,7 @@ public class Player : NetworkBehaviour
         return null;
     }
 
+    #region Do On Clients Command
     [ClientRpc]
     private void RpcAddEntityToDict(GameObject p_entity)
     {
@@ -213,6 +215,21 @@ public class Player : NetworkBehaviour
         }
         _dictEntity.Add(p_entity.GetComponent<Entity>().GetEntityID(), p_entity.GetComponent<Entity>());
     }
+
+    #endregion
+
+    #region Do On Server Commands
+    [Command]
+    private void CmdMoveEntity(GameObject p_entity, Vector3 p_targetPosition)
+    {
+        Entity __entity = p_entity.GetComponent<Entity>();
+
+        if (__entity == null) return;
+
+        __entity.MoveTo(p_targetPosition);
+    }
+
+    #endregion
 }
 
 

@@ -21,6 +21,8 @@ public enum EntityType
 public class Entity : NetworkBehaviour 
 {
     #region Events
+    public event Action onEntityReachedDestination;
+
     public event Action<Entity> onEntityCreated;
     public event Action<string, Vector3> onRequestCreateEntity;
     #endregion
@@ -37,6 +39,10 @@ public class Entity : NetworkBehaviour
     protected float _maxHealth;
     protected float _range;
 
+    private int _gatherEfficiency = 1;
+    private int _resourceCapacity;
+
+
     protected string _entityName;
 
     protected EntityVO __entityVO;
@@ -45,6 +51,8 @@ public class Entity : NetworkBehaviour
     private TweenNodule _currentUnitCreationNodule;
 
     private List<string> _listEntitiesToSpawn = new List<string>();
+
+    private Dictionary<ResourceType, int> _dictResourcesAmount = new Dictionary<ResourceType, int>();
 
     private NavMeshAgent _navMeshAgent;
 
@@ -90,6 +98,7 @@ public class Entity : NetworkBehaviour
         _currentHealth = _maxHealth = __entityVO.maxHealth;
         _range = __entityVO.range;
         _entityType = __entityVO.entityType;
+        _resourceCapacity = __entityVO.resourceCapacity;
         transform.localScale = __entityVO.size;
 
         switch (__entityVO.entityType)
@@ -142,6 +151,11 @@ public class Entity : NetworkBehaviour
         transform.position = p_position;
     }
 
+    public void SetEntityReachedDestinationCallback(Action p_callback)
+    {
+        onEntityReachedDestination = p_callback;
+    }
+
     public void SetEntityColor(Color p_color)
     {
         GetComponent<Renderer>().material.color = p_color;
@@ -162,6 +176,11 @@ public class Entity : NetworkBehaviour
     public virtual string GetEntityName()
     {
         return _entityName;
+    }
+
+    public int GetEntityGatherEfficiency()
+    {
+        return _gatherEfficiency;
     }
 
     public virtual EntityType GetEntityType()
@@ -282,9 +301,9 @@ public class Entity : NetworkBehaviour
 
     #region Commands
 
-    public void MoveTo(Vector3 p_targetPosition, Action p_callbackFinish = null)
+    public void MoveTo(Vector3 p_targetPosition)
     {
-        _commandController.MoveTo(this, p_targetPosition, p_callbackFinish);
+        _commandController.MoveTo(this, p_targetPosition, onEntityReachedDestination);
     }
 
     public void StopMoving()
@@ -296,6 +315,18 @@ public class Entity : NetworkBehaviour
     public NavMeshAgent GetNavMeshAgent()
     {
         return _navMeshAgent;
+    }
+
+    public void AddResource(ResourceType p_resourceType, int p_resourceAmount)
+    {
+        if (_dictResourcesAmount.ContainsKey(p_resourceType) == true)
+        {
+            _dictResourcesAmount[p_resourceType] += p_resourceAmount;
+        }
+        else
+        {
+            _dictResourcesAmount.Add(p_resourceType, p_resourceAmount);
+        }
     }
     #endregion
 }
