@@ -14,9 +14,9 @@ public class Resource : MonoBehaviour
     #region Private Data
     private ResourceType _resourceType;
 
-    private float _extractionTime;
+    [SerializeField] private float _extractionTime = 1.5f;
 
-    private int _resourceQuantity;
+    [SerializeField] private int _resourceQuantity = 500;
 
     private bool _isDepleted = false;
     public bool isDepleted { get { return _isDepleted; } }
@@ -26,7 +26,13 @@ public class Resource : MonoBehaviour
 
     #region Public Methods
 
+
     #region Action Methods
+    public void Initialize(int p_resourceQuantity = 250)
+    {
+        _resourceQuantity = p_resourceQuantity;
+    }
+
     public int GatherResource(int p_amount)
     {
         if (_isDepleted == true)

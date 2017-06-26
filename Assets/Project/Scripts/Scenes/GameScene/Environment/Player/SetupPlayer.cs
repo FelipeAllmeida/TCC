@@ -7,9 +7,13 @@ public class SetupPlayer : NetworkBehaviour
  {
 	void Start () 
     {
-        if (isLocalPlayer)
+        if (isLocalPlayer == true)
+        {
+            GetComponent<Player>().enabled = true;
+        }
+        else
         {
             GetComponent<Player>().enabled = false;
         }
-	}
+    }
 }

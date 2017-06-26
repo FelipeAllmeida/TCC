@@ -217,62 +217,62 @@ public class LocalConnector
         Debug.Log("CreateDatabaseLogicForWindows");
         if (Directory.Exists(_windowsDBPath) == true)
         {
-            //Debug.Log("Directory Exists: " + _windowsDBPath);
-            //if (File.Exists(_windowsDBPath + "/" + _dbName) == true)
-            //{
-            //    File.Delete(_windowsDBPath + "/" + _dbName);
-            //    File.Copy(Application.streamingAssetsPath + "/" + _dbName, _windowsDBPath + "/" + _dbName, true);
-            //}
+            Debug.Log("Directory Exists: " + _windowsDBPath);
+            if (File.Exists(_windowsDBPath + "/" + _dbName) == true)
+            {
+                File.Delete(_windowsDBPath + "/" + _dbName);
+                File.Copy(Application.streamingAssetsPath + "/" + _dbName, _windowsDBPath + "/" + _dbName, true);
+            }
             /*//if (File.Exists(_windowsDBPath + "/" +_dbName) == true)
-            //{
-            //    if (File.Exists(_windowsDBPath + "/" +_dbNameDecrypted) == true)
-            //    {
-            //        if (File.Exists(_windowsDBPath + "/" +_dbName) == true)
-            //        {
-            //            File.Delete(_windowsDBPath + "/" +_dbName);
-            //        }
-            //    }
-            //    else
-            //    {
-            //    }
+            {
+                if (File.Exists(_windowsDBPath + "/" +_dbNameDecrypted) == true)
+                {
+                    if (File.Exists(_windowsDBPath + "/" +_dbName) == true)
+                    {
+                        File.Delete(_windowsDBPath + "/" +_dbName);
+                    }
+                }
+                else
+                {
+                }
 
-            //    string __foundVersion = CheckBundleVersion();
+                string __foundVersion = CheckBundleVersion();
 
-            //    if (__foundVersion != CurrentBundleVersion.version)
-            //    {
-            //        if (File.Exists(_windowsDBPath + "/" +_dbName) == true)
-            //        {
-            //            File.Delete(_windowsDBPath + "/" +_dbName);
-            //        }
-            //        if (File.Exists(_windowsDBPath + "/" +_dbNameDecrypted) == true)
-            //        {
-            //            File.Delete(_windowsDBPath + "/" +_dbNameDecrypted);
-            //        }
+                if (__foundVersion != CurrentBundleVersion.version)
+                {
+                    if (File.Exists(_windowsDBPath + "/" +_dbName) == true)
+                    {
+                        File.Delete(_windowsDBPath + "/" +_dbName);
+                    }
+                    if (File.Exists(_windowsDBPath + "/" +_dbNameDecrypted) == true)
+                    {
+                        File.Delete(_windowsDBPath + "/" +_dbNameDecrypted);
+                    }
 
-            //        File.Copy(Application.streamingAssetsPath + "/" +_dbName, _windowsDBPath + "/" +_dbName, true);
+                    File.Copy(Application.streamingAssetsPath + "/" +_dbName, _windowsDBPath + "/" +_dbName, true);
 
-            //        SecureFile.DecryptFile(_windowsDBPath + "/" +_dbName, _windowsDBPath + "/" +_dbNameDecrypted);
+                    SecureFile.DecryptFile(_windowsDBPath + "/" +_dbName, _windowsDBPath + "/" +_dbNameDecrypted);
 
-            //        InsertBundleVersionDataInDatabase(CurrentBundleVersion.version);
-            //    }
-            //}
-            //else
-            //{
-            //    File.Copy(Application.streamingAssetsPath + "/" +_dbName, _windowsDBPath + "/" +_dbName, true);
+                    InsertBundleVersionDataInDatabase(CurrentBundleVersion.version);
+                }
+            }
+            else
+            {
+                File.Copy(Application.streamingAssetsPath + "/" +_dbName, _windowsDBPath + "/" +_dbName, true);
 
-            //    if (File.Exists(_windowsDBPath + "/" +_dbNameDecrypted) == true)
-            //    {
-            //        if (File.Exists(_windowsDBPath + "/" +_dbName) == true)
-            //        {
-            //            File.Delete(_windowsDBPath + "/" +_dbName);
-            //        }
-            //        SecureFile.EncryptFile(_windowsDBPath + "/" +_dbNameDecrypted, _windowsDBPath + "/" +_dbName);
-            //    }
-            //    else
-            //    {
-            //        SecureFile.DecryptFile(_windowsDBPath + "/" +_dbName, _windowsDBPath + "/" +_dbNameDecrypted);
-            //    }
-            //}*/
+                if (File.Exists(_windowsDBPath + "/" +_dbNameDecrypted) == true)
+                {
+                    if (File.Exists(_windowsDBPath + "/" +_dbName) == true)
+                    {
+                        File.Delete(_windowsDBPath + "/" +_dbName);
+                    }
+                    SecureFile.EncryptFile(_windowsDBPath + "/" +_dbNameDecrypted, _windowsDBPath + "/" +_dbName);
+                }
+                else
+                {
+                    SecureFile.DecryptFile(_windowsDBPath + "/" +_dbName, _windowsDBPath + "/" +_dbNameDecrypted);
+                }
+            }*/
         }
         else
         {

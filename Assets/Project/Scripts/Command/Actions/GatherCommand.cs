@@ -13,6 +13,7 @@ public class GatherCommand : Command
 
     public GatherCommand(Entity p_actor, Resource p_resource, Action p_callbackFinish = null)
     {
+        Debug.Log("GatherCommand");
         _actor = p_actor;
         _resource = p_resource;
         _actionFinishGathering = p_callbackFinish;
@@ -27,7 +28,11 @@ public class GatherCommand : Command
     private void GatherRecursion()
     {
         if (_resource.isDepleted == true)
+        {
+            if (_actionFinishGathering != null)
+                _actionFinishGathering();
             return;
+        }
         _gatherNodule = Timer.WaitSeconds(_resource.GetExtractionTime(), delegate
         {
             int __resourcesToAdd = _resource.GatherResource(_actor.GetEntityGatherEfficiency());
@@ -39,5 +44,6 @@ public class GatherCommand : Command
     public override void Stop()
     {
         if (_gatherNodule != null) _gatherNodule.Stop();
+        _actionFinishGathering = null;
     }
 }

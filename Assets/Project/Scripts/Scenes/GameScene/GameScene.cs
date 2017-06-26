@@ -28,9 +28,14 @@ public class GameScene : State<TCC.StateType>
 
     private void ListenEnvironmentEvents()
     {
-        _environment.onRequestSetInterfaceSelectedUnit += delegate (Entity p_unit)
+        _environment.onRequestSetInterfaceSelectedUnit += delegate (bool p_isPlayer, Entity p_unit)
         {
-            _environmentCanvas.SetInterfaceSelectedUnit(p_unit);
+            _environmentCanvas.SetInterfaceSelectedUnit(p_isPlayer, p_unit);
+        };
+
+        _environment.onRequestUpdateResourcesUI += delegate (int p_crystalAmount)
+        {
+            _environmentCanvas.UpdateResourcesPanel(p_crystalAmount);
         };
 
         _environment.onRequestSetCameraFocusObject += delegate (Vector3 p_focusObjectPos)

@@ -49,9 +49,14 @@ public class EnvironmentCanvas : MonoBehaviour
     }
 
     #region Interface
-    public void SetInterfaceSelectedUnit(Entity p_unit)
+    public void SetInterfaceSelectedUnit(bool p_isPlayer, Entity p_unit)
     {
-        _interface.SetSelectedUnit(p_unit);
+        _interface.SetSelectedUnit(p_isPlayer, p_unit);
+    }
+
+    public void UpdateResourcesPanel(int p_crystalAmount)
+    {
+        _interface.UpdateResourcesPanel(p_crystalAmount);
     }
     #endregion
 }

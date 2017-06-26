@@ -9,6 +9,7 @@ public class EntityDisplayPanel : UIUnitPanel
     [Header("Entity Display Info")]
     [SerializeField] private GameObject _entityDisplay;
     [SerializeField] private Text _entityName;
+    [SerializeField] private Text _entityHealth;
     [SerializeField] private Image _entityImage;
 
     [Header("Entity Building Info")]
@@ -58,7 +59,7 @@ public class EntityDisplayPanel : UIUnitPanel
             base.SetSelectedUnit(p_entity);
             _entityDisplay.SetActive(true);
             _entityName.text = p_entity.GetEntityName();
-
+            _entityHealth.text = string.Format("{0} / {1}", p_entity.GetCurrentHealth(), p_entity.GetMaxHealth());
             if (p_entity.GetEntityType() == EntityType.BUILDING)
             {                
                 ActivateEntityBuildedDisplay(p_entity.GetIsBuilding());

@@ -13,6 +13,7 @@ public class Interface : MonoBehaviour
     [Header("Interface Panels")]
     [SerializeField] private UnitSelectionPanel _unitSelectionPanel;
     [SerializeField] private EntityDisplayPanel _entityDisplayPanel;
+    [SerializeField] private ResourcesPanel _resourcesPanel;
 
     public void AInitialize()
     {
@@ -35,6 +36,11 @@ public class Interface : MonoBehaviour
         _entityDisplayPanel.Initialize();
     }
 
+    private void InitializeResourcesPanel()
+    {
+        _resourcesPanel.Initialize();
+    }
+
     public void AUpdate()
     {
         _unitSelectionPanel.AUpdate();
@@ -42,9 +48,12 @@ public class Interface : MonoBehaviour
     }
 
     #region Panels
-    public void SetSelectedUnit(Entity p_unit)
+    public void SetSelectedUnit(bool p_isPlayer, Entity p_unit)
     {
-        _unitSelectionPanel.SetSelectedUnit(p_unit);
+        if (p_isPlayer == true)
+        {
+            _unitSelectionPanel.SetSelectedUnit(p_unit);        
+        }
         _entityDisplayPanel.SetSelectedUnit(p_unit);
     }
 
@@ -57,6 +66,11 @@ public class Interface : MonoBehaviour
     {
         _unitSelectionPanel.DeselectUnit();
         _entityDisplayPanel.DeselectUnit();
+    }
+
+    public void UpdateResourcesPanel(int p_crystalAmount)
+    {
+        _resourcesPanel.UpdateResources(p_crystalAmount);
     }
     #endregion
 }

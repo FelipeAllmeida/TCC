@@ -8,7 +8,8 @@ using Framework;
 public class Environment : MonoBehaviour 
 {
     #region Event Data
-    public event Action<Entity> onRequestSetInterfaceSelectedUnit;
+    public event Action<bool, Entity> onRequestSetInterfaceSelectedUnit;
+    public event Action<int> onRequestUpdateResourcesUI;
     public event Action<Vector3> onRequestSetCameraFocusObject;
     #endregion
 
@@ -56,9 +57,14 @@ public class Environment : MonoBehaviour
 
     private void InitializeMainPlayerEvents()
     {
-        _dictPlayers[_mainPlayer].onRequestShowSelectUnitUI += delegate (Entity p_unit)
+        _dictPlayers[_mainPlayer].onRequestShowSelectUnitUI += delegate (bool p_isPlayer, Entity p_unit)
         {
-            if (onRequestSetInterfaceSelectedUnit != null) onRequestSetInterfaceSelectedUnit(p_unit);
+            if (onRequestSetInterfaceSelectedUnit != null) onRequestSetInterfaceSelectedUnit(p_isPlayer, p_unit);
+        };
+
+        _dictPlayers[_mainPlayer].onRequestUpdateResourcesUI += delegate (int p_crystalAmount)
+        {
+            if (onRequestUpdateResourcesUI != null) onRequestUpdateResourcesUI(p_crystalAmount);
         };
     }
 

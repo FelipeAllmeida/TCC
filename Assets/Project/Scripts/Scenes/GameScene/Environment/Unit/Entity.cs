@@ -21,10 +21,14 @@ public enum EntityType
 public class Entity : NetworkBehaviour 
 {
     #region Events
-    public event Action onEntityReachedDestination;
+    public event Action onCurrentCommandFinish;
 
     public event Action<Entity> onEntityCreated;
+    public event Action<Entity> onDeath;
+
     public event Action<string, Vector3> onRequestCreateEntity;
+
+    public event Action<ResourceType, int> onAddResource;
     #endregion
 
     #region Protected Data
@@ -38,6 +42,8 @@ public class Entity : NetworkBehaviour
     protected float _currentHealth;
     protected float _maxHealth;
     protected float _range;
+    protected float _damage;
+    protected float _attackSpeed;
 
     private int _gatherEfficiency = 1;
     private int _resourceCapacity;
@@ -51,8 +57,6 @@ public class Entity : NetworkBehaviour
     private TweenNodule _currentUnitCreationNodule;
 
     private List<string> _listEntitiesToSpawn = new List<string>();
-
-    private Dictionary<ResourceType, int> _dictResourcesAmount = new Dictionary<ResourceType, int>();
 
     private NavMeshAgent _navMeshAgent;
 
@@ -97,6 +101,8 @@ public class Entity : NetworkBehaviour
         _listAvaiableEntities = __entityVO.listAvaiableEntitiesToBuild;
         _currentHealth = _maxHealth = __entityVO.maxHealth;
         _range = __entityVO.range;
+        _damage = __entityVO.damage;
+        _attackSpeed = __entityVO.attackSpeed;
         _entityType = __entityVO.entityType;
         _resourceCapacity = __entityVO.resourceCapacity;
         transform.localScale = __entityVO.size;
@@ -121,19 +127,14 @@ public class Entity : NetworkBehaviour
         _commandController.AUpdate();
     }
 
-    public int GetUnitTeam()
+    public void InflictDamage(float p_damage)
     {
-        return _team;
-    }
-
-    public string GetEntityID()
-    {
-        return _id;
-    }
-
-    public float GetRange()
-    {
-        return _range;
+        _currentHealth -= p_damage;
+        if (_currentHealth <= 0)
+        {
+            if (onDeath != null)
+                onDeath(this);
+        }
     }
 
     protected void SetEntityName(string p_name)
@@ -151,14 +152,44 @@ public class Entity : NetworkBehaviour
         transform.position = p_position;
     }
 
-    public void SetEntityReachedDestinationCallback(Action p_callback)
+    public void SetCurrentCommandFinishCallback(Action p_callback)
     {
-        onEntityReachedDestination = p_callback;
+        _commandController.onCurrentCommandFinish = p_callback;
     }
 
     public void SetEntityColor(Color p_color)
     {
         GetComponent<Renderer>().material.color = p_color;
+    }
+
+    public void AddResource(ResourceType p_resourceType, int p_resourceAmount)
+    {
+        if (onAddResource != null) onAddResource(p_resourceType, p_resourceAmount);
+    }
+
+    public int GetTeam()
+    {
+        return _team;
+    }
+
+    public string GetEntityID()
+    {
+        return _id;
+    }
+
+    public float GetRange()
+    {
+        return _range;
+    }
+
+    public float GetDamage()
+    {
+        return _damage;
+    }
+
+    public float GetAttackSpeed()
+    {
+        return _attackSpeed;
     }
 
     public Vector3 GetEntityPosition()
@@ -173,9 +204,19 @@ public class Entity : NetworkBehaviour
         return __spawnPosition;
     }
 
-    public virtual string GetEntityName()
+    public string GetEntityName()
     {
         return _entityName;
+    }
+
+    public float GetCurrentHealth()
+    {
+        return _currentHealth;
+    }
+
+    public float GetMaxHealth()
+    {
+        return _maxHealth;
     }
 
     public int GetEntityGatherEfficiency()
@@ -210,7 +251,7 @@ public class Entity : NetworkBehaviour
 
 
     #region Spawn Entities
-    public void AddUnitToSpawnList(string p_unitType, Vector3 p_position)
+    public void AddEntityToSpawnList(string p_unitType, Vector3 p_position)
     {
         _listEntitiesToSpawn.Add(p_unitType);
         SpawnUnitList();
@@ -248,7 +289,7 @@ public class Entity : NetworkBehaviour
         {
             Debug.Log("Unit Spawned: " + p_unitType);
             _unitBuildPercentage = 0f;
-            if (onRequestCreateEntity != null) onRequestCreateEntity(p_unitType, transform.position);
+            if (onRequestCreateEntity != null) onRequestCreateEntity(p_unitType, transform.position - new Vector3(0f,0f,  1 + (transform.localScale.x / 2f)));
             if (p_callbackFinish != null) p_callbackFinish();
         };
     }
@@ -300,16 +341,19 @@ public class Entity : NetworkBehaviour
     }
 
     #region Commands
+    public void AttackEntity(Entity p_other)
+    {
+        _commandController.AttackEntity(this, p_other);
+    }
 
     public void MoveTo(Vector3 p_targetPosition)
     {
-        _commandController.MoveTo(this, p_targetPosition, onEntityReachedDestination);
+        _commandController.MoveTo(this, p_targetPosition);
     }
 
-    public void StopMoving()
+    public void StopCurrentCommand()
     {
-        _navMeshAgent.isStopped = true;
-        _navMeshAgent.ResetPath();
+        _commandController.StopCurrentCommand();
     }
 
     public NavMeshAgent GetNavMeshAgent()
@@ -317,16 +361,10 @@ public class Entity : NetworkBehaviour
         return _navMeshAgent;
     }
 
-    public void AddResource(ResourceType p_resourceType, int p_resourceAmount)
+    public void TakeResource(Resource p_resource)
     {
-        if (_dictResourcesAmount.ContainsKey(p_resourceType) == true)
-        {
-            _dictResourcesAmount[p_resourceType] += p_resourceAmount;
-        }
-        else
-        {
-            _dictResourcesAmount.Add(p_resourceType, p_resourceAmount);
-        }
+        Debug.Log("Take Resource");
+        _commandController.GatherResource(this, p_resource);
     }
     #endregion
 }

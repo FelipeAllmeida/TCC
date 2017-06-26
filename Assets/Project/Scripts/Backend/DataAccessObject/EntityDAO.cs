@@ -62,7 +62,7 @@ public class EntityDAO : DataAccessObject
 
         List<Dictionary<string, string>> __listData =  SelectDataFromTable(SelectType.NONE, false, __table, __arraySelectKeys, __dictWhere);
         List<CommandType> __listCommands = new List<CommandType>();
-
+        UnityEngine.Debug.Log("__listCommands.Count: " + __listData.Count);
         for (int i = 0;i < __listData.Count;i++)
         {
             CommandType __commandType = (CommandType)Enum.Parse(typeof(CommandType), __listData[i]["command"]);
