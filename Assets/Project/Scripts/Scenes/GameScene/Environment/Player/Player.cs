@@ -307,7 +307,10 @@ public class Player : NetworkBehaviour
             _dictResourcesAmount[ResourceType.CRYSTAL] -= __resourceCost;
             Vector3 __position = _dictEntity[p_builderEntityID].GetEntityPosition();
             _dictEntity[p_builderEntityID].AddEntityToSpawnList(p_entityToSpawn, __position);
-        }       
+            if (onRequestUpdateResourcesUI != null)
+                onRequestUpdateResourcesUI(_dictResourcesAmount[ResourceType.CRYSTAL]);
+
+        }
     }
 
     private Entity SpawnEntity(NetworkInstanceId p_id, string p_entitySpecificType, Vector3 p_position)
