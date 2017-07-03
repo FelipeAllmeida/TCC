@@ -11,12 +11,13 @@ public enum ResourceType
 
 public class Resource : MonoBehaviour 
 {
+    public event Action onResourceDepleted;
     #region Private Data
     private ResourceType _resourceType;
 
     [SerializeField] private float _extractionTime = 1.5f;
 
-    [SerializeField] private int _resourceQuantity = 500;
+    [SerializeField] private int _resourceQuantity = 250;
 
     private bool _isDepleted = false;
     public bool isDepleted { get { return _isDepleted; } }
@@ -49,6 +50,8 @@ public class Resource : MonoBehaviour
             __amountRemoved = _resourceQuantity;
             _resourceQuantity = 0;
             _isDepleted = true;
+            if (onResourceDepleted != null)
+                onResourceDepleted();
         }
 
         return __amountRemoved;

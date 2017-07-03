@@ -25,6 +25,8 @@ public class MoveCommand : Command
     {
         if ((_actor.GetNavMeshAgent().remainingDistance < _actor.GetRange()))
         {
+            _actor.GetNavMeshAgent().isStopped = true;
+            _actor.GetNavMeshAgent().ResetPath();
             if (_actionReachedDestination != null)
             {
                 _actionReachedDestination();

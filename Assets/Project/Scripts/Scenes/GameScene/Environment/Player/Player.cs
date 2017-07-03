@@ -25,7 +25,7 @@ public class Player : NetworkBehaviour
     #region Private Data
     private Dictionary<string, Entity> _dictEntity = new Dictionary<string, Entity>();
     private Dictionary<ResourceType, int> _dictResourcesAmount = new Dictionary<ResourceType, int>();
-    private Entity _currentSelectedUnit;
+    private Entity _currentSelectedEntity;
     private FakeEntity _fakeEntity;
 
     private string _playerName;
@@ -48,9 +48,8 @@ public class Player : NetworkBehaviour
         _playerColor = p_color;
     }
     
-    public void Initialize(int p_team, Vector3 p_startPosition)
+    public void Initialize(Vector3 p_startPosition)
     {
-        _team = p_team;
         InitializeDictResources();
         CmdCreateNewEntity(netId, "BUILDING_CENTER", p_startPosition);
 
@@ -76,6 +75,11 @@ public class Player : NetworkBehaviour
         return isLocalPlayer;
     }
 
+    public bool GetIsServer()
+    {
+        return isServer;
+    }
+
     public void AUpdate()
     {
         if (_isSpawningEntityBuilding == true)
@@ -96,17 +100,39 @@ public class Player : NetworkBehaviour
         SpawnEntity(p_id, p_entitySpecificType, p_position);        
     }
 
+    [Command]
+    private void CmdDestroyEntity(GameObject p_entity)
+    {
+        NetworkServer.Destroy(p_entity);
+    }
+
 
     [ClientRpc]
     private void RpcListenEntityEvents(GameObject p_entity)
     {
-        p_entity.GetComponent<Entity>().onRequestCreateEntity += HandleCmdCreateNewEntity;
-        p_entity.GetComponent<Entity>().onAddResource += HandleAddResource;
+        Entity __entity = p_entity.GetComponent<Entity>();
+        __entity.onRequestCreateEntity += HandleCmdCreateNewEntity;
+        __entity.onAddResource += HandleAddResource;
+
+        __entity.onDeath += delegate
+        {
+            if (_currentSelectedEntity == __entity)
+            {
+                if (onRequestShowSelectUnitUI != null)
+                    onRequestShowSelectUnitUI(false, null);
+            }
+            HandleCmdDestroyEntity(p_entity);
+        };
     }
 
     private void HandleCmdCreateNewEntity(string p_entitySpecificType, Vector3 p_startPos)
     {
         CmdCreateNewEntity(netId, p_entitySpecificType, p_startPos);
+    }
+
+    private void HandleCmdDestroyEntity(GameObject p_entity)
+    {
+        CmdDestroyEntity(p_entity);
     }
 
     private void HandleAddResource(ResourceType p_resourceType, int p_resourceAmount)
@@ -128,28 +154,26 @@ public class Player : NetworkBehaviour
         GameObject __hit = p_inputInfo.hit;
         if (_isSpawningEntityBuilding == true)
         {
-            switch (__hit.tag)
-            {
-                case "Entity":
-                    Vector3 __buildPos = _fakeEntity.transform.position;
-                    float __distance = Vector3.Distance(_dictEntity[_fakeEntity.GetConstructorID()].GetEntityPosition(), __buildPos);
-                    Action __callbackBuildEntity = delegate
-                    {
-                        __callbackBuildEntity = null;
-                        _dictEntity[_fakeEntity.GetConstructorID()].AddEntityToSpawnList(_fakeEntity.GetEntityType(), __buildPos);
-                    };
-                    PoolManager.instance.Despawn(PoolType.FAKE_ENTITY, _fakeEntity.gameObject);
-                    _isSpawningEntityBuilding = false;
-                    if (__distance < _dictEntity[_fakeEntity.GetConstructorID()].GetRange())
-                    {
-                        __callbackBuildEntity();
-                    }
-                    else
-                    {
-                        _dictEntity[_fakeEntity.GetConstructorID()].SetCurrentCommandFinishCallback(__callbackBuildEntity);
-                        CmdMoveEntity(_dictEntity[_fakeEntity.GetConstructorID()].gameObject, __buildPos);
-                    }
-                    break;
+            if (_currentSelectedEntity != null)
+            { 
+                Vector3 __buildPos = p_inputInfo.worldClickPoint;
+                float __distance = Vector3.Distance(_dictEntity[_fakeEntity.GetConstructorID()].GetEntityPosition(), __buildPos);
+                Action __callbackBuildEntity = delegate
+                {
+                    __callbackBuildEntity = null;
+                    _dictEntity[_fakeEntity.GetConstructorID()].AddEntityToSpawnList(_fakeEntity.GetEntityType(), __buildPos);
+                };
+                PoolManager.instance.Despawn(PoolType.FAKE_ENTITY, _fakeEntity.gameObject);
+                _isSpawningEntityBuilding = false;
+                if (__distance < _dictEntity[_fakeEntity.GetConstructorID()].GetRange())
+                {
+                    __callbackBuildEntity();
+                }
+                else
+                {
+                    _dictEntity[_fakeEntity.GetConstructorID()].SetCurrentCommandFinishCallback(__callbackBuildEntity);
+                    CmdMoveEntity(_dictEntity[_fakeEntity.GetConstructorID()].gameObject, __buildPos);
+                }
             }
         }
         else
@@ -157,16 +181,16 @@ public class Player : NetworkBehaviour
             switch (__hit.tag)
             {
                 case "Entity":
-                    _currentSelectedUnit = __hit.GetComponent<Entity>();
-                    bool __isPlayer = (_currentSelectedUnit.GetTeam() == team) ? true : false;
-                    if (onRequestShowSelectUnitUI != null) onRequestShowSelectUnitUI(__isPlayer, _currentSelectedUnit);
+                    _currentSelectedEntity = __hit.GetComponent<Entity>();
+                    bool __isPlayer = (_currentSelectedEntity.GetTeam() == team) ? true : false;
+                    if (onRequestShowSelectUnitUI != null) onRequestShowSelectUnitUI(__isPlayer, _currentSelectedEntity);
                     break;
                 case "Resource":
                     break;
                 case "Ground":
-                    _currentSelectedUnit = null;
+                    _currentSelectedEntity = null;
                     if (onRequestShowSelectUnitUI != null)
-                        onRequestShowSelectUnitUI(false, _currentSelectedUnit);
+                        onRequestShowSelectUnitUI(false, _currentSelectedEntity);
 
                     break;
             }
@@ -189,15 +213,15 @@ public class Player : NetworkBehaviour
         }
         else
         {
-            if (_currentSelectedUnit != null)
+            if (_currentSelectedEntity != null)
             {
-                Debug.Log("entity team: " + _currentSelectedUnit.GetTeam() + " | player team: " + _team);
+                //Debug.Log("entity team: " + _currentSelectedEntity.GetTeam() + " | player team: " + _team);
                 
-                if (_currentSelectedUnit.GetTeam() == _team)
+                if (_currentSelectedEntity.GetTeam() == _team)
                 {
                     if (p_inputInfo.hit != null && p_inputInfo.hit.tag != "UI")
                     {
-                        _currentSelectedUnit.StopCurrentCommand();
+                        _currentSelectedEntity.StopCurrentCommand();
                     }
                     float __distance;
                     Action __callbackFinishCommand;
@@ -205,61 +229,62 @@ public class Player : NetworkBehaviour
                     {
                         case "Entity":
                             Entity __entity = __hit.GetComponent<Entity>();
-                            if (__entity.GetTeam() == _currentSelectedUnit.GetTeam())
+                            if (__entity.GetTeam() == _currentSelectedEntity.GetTeam())
                             //ALLY
                             {
-                                if (_currentSelectedUnit.GetEntityType() == EntityType.UNIT)
+                                if (_currentSelectedEntity.GetEntityType() == EntityType.UNIT)
                                 {
                                     if (p_inputInfo.hit != null && p_inputInfo.hit.tag == "Entity")
                                     {
-                                        CmdMoveEntity(_currentSelectedUnit.gameObject, p_inputInfo.worldClickPoint);
+                                        CmdMoveEntity(_currentSelectedEntity.gameObject, p_inputInfo.worldClickPoint);
                                     }                                    
                                 }
                             }
                             else
                             //ENEMY
                             {
-                                __distance = Vector3.Distance(_dictEntity[_currentSelectedUnit.GetEntityID()].GetEntityPosition(), __entity.GetEntityPosition());
+                                Debug.Log("Attack Enemy");
+                                __distance = Vector3.Distance(_dictEntity[_currentSelectedEntity.GetEntityID()].GetEntityPosition(), __entity.GetEntityPosition());
+                                GameObject __entityObject = _dictEntity[_currentSelectedEntity.GetEntityID()].gameObject;
+                                GameObject __targetEntityObject = __hit.gameObject;
                                 __callbackFinishCommand = delegate
                                 {
                                     __callbackFinishCommand = null;
-                                    GameObject __entityObject = _dictEntity[_currentSelectedUnit.GetEntityID()].gameObject;
-                                    GameObject __targetEntityObject = __hit.gameObject;
                                     CmdAttackEntity(__entityObject, __targetEntityObject);
                                 };
-                                if (__distance < _dictEntity[_currentSelectedUnit.GetEntityID()].GetRange())
+                                if (__distance < _dictEntity[_currentSelectedEntity.GetEntityID()].GetRange())
                                 {
                                     __callbackFinishCommand();
                                 }
                                 else
                                 {
-                                    _dictEntity[_currentSelectedUnit.GetEntityID()].SetCurrentCommandFinishCallback(__callbackFinishCommand);
-                                    CmdMoveEntity(_dictEntity[_currentSelectedUnit.GetEntityID()].gameObject, __entity.GetEntityPosition());
+                                    _dictEntity[_currentSelectedEntity.GetEntityID()].SetCurrentCommandFinishCallback(__callbackFinishCommand);
+                                    CmdMoveEntity(_dictEntity[_currentSelectedEntity.GetEntityID()].gameObject, __entity.GetEntityPosition());
                                 }
                             }
                             break;
                         case "Ground":
-                            CmdMoveEntity(_currentSelectedUnit.gameObject, p_inputInfo.worldClickPoint);
+                            CmdMoveEntity(_currentSelectedEntity.gameObject, p_inputInfo.worldClickPoint);
                             break;
                         case "Resource":                           
                             Resource __resource = __hit.GetComponent<Resource>();
-                            __distance = Vector3.Distance(_dictEntity[_currentSelectedUnit.GetEntityID()].GetEntityPosition(), __resource.transform.position);
+                            __distance = Vector3.Distance(_dictEntity[_currentSelectedEntity.GetEntityID()].GetEntityPosition(), __resource.transform.position);
                             __callbackFinishCommand = delegate
                             {
                                 __callbackFinishCommand = null;
-                                GameObject __entityObject = _dictEntity[_currentSelectedUnit.GetEntityID()].gameObject;
+                                GameObject __entityObject = _dictEntity[_currentSelectedEntity.GetEntityID()].gameObject;
                                 GameObject __resourceObject = __resource.gameObject;
                                 CmdGatherResource(__entityObject, __resourceObject);
                             };
 
-                            if (__distance < _dictEntity[_currentSelectedUnit.GetEntityID()].GetRange())
+                            if (__distance < _dictEntity[_currentSelectedEntity.GetEntityID()].GetRange())
                             {
                                 __callbackFinishCommand();
                             }
                             else
                             {
-                                _dictEntity[_currentSelectedUnit.GetEntityID()].SetCurrentCommandFinishCallback(__callbackFinishCommand);
-                                CmdMoveEntity(_currentSelectedUnit.gameObject, p_inputInfo.worldClickPoint);
+                                _dictEntity[_currentSelectedEntity.GetEntityID()].SetCurrentCommandFinishCallback(__callbackFinishCommand);
+                                CmdMoveEntity(_currentSelectedEntity.gameObject, p_inputInfo.worldClickPoint);
                             }
                             break;
                     }
@@ -359,6 +384,7 @@ public class Player : NetworkBehaviour
     [ClientRpc]
     private void RpcAttackEntity(GameObject p_entity, GameObject p_other)
     {
+        Debug.Log("RpcAttackEntity");
         Entity __entity = p_entity.GetComponent<Entity>();
 
         if (__entity == null)
@@ -370,6 +396,21 @@ public class Player : NetworkBehaviour
             return;
 
         __entity.AttackEntity(__other);
+    }
+
+    [Server]
+    public void RpcSpawnResource(GameObject p_resource, Vector3 p_position)
+    {
+        Resource __resource = Instantiate(p_resource, p_position, new Quaternion(1f, 1f, 1f, 1f)).GetComponent<Resource>();
+        __resource.Initialize(UnityEngine.Random.Range(80, 290));
+        __resource.transform.position = p_position;
+        NetworkServer.Spawn(__resource.gameObject);
+    }
+
+    [Server]
+    public void DespawnResource(GameObject p_resource)
+    {
+        NetworkServer.Destroy(p_resource);
     }
     #endregion
 
@@ -399,6 +440,7 @@ public class Player : NetworkBehaviour
     [Command]
     private void CmdAttackEntity(GameObject p_entity, GameObject p_other)
     {
+        Debug.Log("CmdAttackEntity");
         RpcAttackEntity(p_entity, p_other);        
     }
     #endregion

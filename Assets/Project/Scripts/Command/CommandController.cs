@@ -55,6 +55,7 @@ public class CommandController : MonoBehaviour
 
     public void AttackEntity(Entity p_actor, Entity p_other)
     {
+        Debug.Log("AttackEntity");
         if (_listCommandType.Contains(CommandType.ATTACK) == true)
         {
             _command = new AttackCommand(p_actor, p_other);

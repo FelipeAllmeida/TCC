@@ -20,8 +20,8 @@ public class GameScene : State<TCC.StateType>
         DataManager.instance.AInitialize(delegate
         {
             _cameraManager.Initialize(new Vector3(100f, 8f, 100f));
-            _environment.AInitialize();
             _environmentCanvas.AInitialize();
+            _environment.AInitialize();
             ListenEnvironmentEvents();
         });
     }
@@ -36,6 +36,11 @@ public class GameScene : State<TCC.StateType>
         _environment.onRequestUpdateResourcesUI += delegate (int p_crystalAmount)
         {
             _environmentCanvas.UpdateResourcesPanel(p_crystalAmount);
+        };
+
+        _environment.onGameStarted += delegate
+        {
+            _environmentCanvas.RemoveInitializationBackground();
         };
 
         _environment.onRequestSetCameraFocusObject += delegate (Vector3 p_focusObjectPos)

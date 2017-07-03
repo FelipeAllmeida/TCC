@@ -23,11 +23,13 @@ public class NetworkController : NetworkManager
 
     public override void OnClientConnect(NetworkConnection conn)
     {
+        Debug.Log("OnClientConnect: " + conn.connectionId + " | " + conn.address);
         if (onClientConnect != null) onClientConnect();
     }
 
     public override void OnServerConnect(NetworkConnection conn)
     {
+        Debug.Log("OnServerConnect: " + conn.connectionId + " | " + conn.address);
         _isOn = true;
         if (onServerConnect != null) onServerConnect();
     }
@@ -45,5 +47,11 @@ public class NetworkController : NetworkManager
     public override void OnStartClient(NetworkClient client)
     {
         if (onStartClient != null) onStartClient();
+    }
+
+    public override void OnServerAddPlayer(NetworkConnection conn, short playerControllerId)
+    {
+        base.OnServerAddPlayer(conn, playerControllerId);
+        Debug.Log("OnServerAddPlayer");
     }
 }

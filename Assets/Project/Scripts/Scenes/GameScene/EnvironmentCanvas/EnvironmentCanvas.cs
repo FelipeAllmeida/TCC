@@ -2,6 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using Framework;
 
 public class EnvironmentCanvas : MonoBehaviour 
 {
@@ -11,6 +13,7 @@ public class EnvironmentCanvas : MonoBehaviour
 
     #region Private Serialized-Data
     [SerializeField] private Interface _interface;
+    [SerializeField] private Image _background;
     #endregion
 
     #region Private Data
@@ -30,6 +33,20 @@ public class EnvironmentCanvas : MonoBehaviour
         _interface.onClickCommand += delegate (string p_entityID, CommandType p_commandType, object[] p_args)
         {
             if (onClickInterfaceCommand != null) onClickInterfaceCommand(p_entityID, p_commandType, p_args);
+        };
+    }
+
+    public void RemoveInitializationBackground()
+    {
+        TweenNodule __nodule = ATween.FloatTo(1f, 0f, 1.5f, TweenEase.LINEAR, delegate (float p_value)
+        {
+            Color __col = _background.color;
+            __col.a = p_value;
+            _background.color = __col;
+        });
+        __nodule.onFinished += delegate
+        {
+            _background.gameObject.SetActive(false);
         };
     }
 

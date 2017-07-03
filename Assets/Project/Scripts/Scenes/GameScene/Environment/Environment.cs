@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -11,10 +12,13 @@ public class Environment : MonoBehaviour
     public event Action<bool, Entity> onRequestSetInterfaceSelectedUnit;
     public event Action<int> onRequestUpdateResourcesUI;
     public event Action<Vector3> onRequestSetCameraFocusObject;
+
+    public event Action onGameStarted;
     #endregion
 
     #region Private Serialized-Data
     [SerializeField] private WorldManager _worldManager;
+    [SerializeField] private GameObject _resourcePrefab;
     #endregion
 
     #region Private Data
@@ -25,8 +29,8 @@ public class Environment : MonoBehaviour
     #endregion
 
     public void AInitialize()
-    {
-        _worldManager.Initialize(1000, 7, 1000);
+    {       
+        _worldManager.Initialize(100, 7, 100);
         InitializeInputManager();
         Timer.WaitSeconds(1f, delegate
         {
@@ -38,21 +42,40 @@ public class Environment : MonoBehaviour
     {
         GameObject[] __listPlayersObjects = GameObject.FindGameObjectsWithTag("Player");
         _mainPlayer = -1;
+        bool __isServer = false;
         for (int i = 0;i < __listPlayersObjects.Length;i++)
         {
             Player __player = __listPlayersObjects[i].GetComponent<Player>();
             __player.SetTeam(i);
             __player.transform.SetParent(transform);
-            if (__player.GetIsLocalPlayer())
+            if (__player.GetIsLocalPlayer() == true)
             {
                 _mainPlayer = i;
+                if (__player.isServer == true)
+                {
+                    __isServer = true;
+                }
             }
             _dictPlayers.Add(i, __player);        
         }
+
+        if (__isServer == true)
+        {
+            for (int i = 0;i < 15; i++)
+            {
+                _dictPlayers[_mainPlayer].RpcSpawnResource(_resourcePrefab, new Vector3(UnityEngine.Random.Range(-40f, 40f), 0f, UnityEngine.Random.Range(-40f, 40f)));
+                _resourcePrefab.GetComponent<Resource>().onResourceDepleted += delegate
+                {
+                    //_dictPlayers[_mainPlayer].DespawnResource(_resourcePrefab);
+                };
+            }
+        }
+
         Vector3 __randomStartPos = new Vector3(UnityEngine.Random.Range(-40f, 40f), 0f, UnityEngine.Random.Range(-40f, 40f));
-        _dictPlayers[_mainPlayer].Initialize(_mainPlayer, __randomStartPos);
         InitializeMainPlayerEvents();
+        _dictPlayers[_mainPlayer].Initialize(__randomStartPos);
         if (onRequestSetCameraFocusObject != null) onRequestSetCameraFocusObject(__randomStartPos);
+        if (onGameStarted != null) onGameStarted();
     }
 
     private void InitializeMainPlayerEvents()

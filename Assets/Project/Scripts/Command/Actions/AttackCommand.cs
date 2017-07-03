@@ -12,6 +12,7 @@ public class AttackCommand : Command
 
     public AttackCommand(Entity p_entity, Entity p_other)
     {
+        Debug.Log("AttackCommand");
         _actor = p_entity;
         _other = p_other;
     }

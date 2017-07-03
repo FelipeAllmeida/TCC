@@ -30,7 +30,7 @@ public class DynamicActionButton : MonoBehaviour
 
     public void ChangeButtonCommandType(string p_actionType)
     {
-        Debug.Log("ChangeButtonCommandType: " + p_actionType);
+       // Debug.Log("ChangeButtonCommandType: " + p_actionType);
         _actionType = p_actionType;
         _button.onClick.RemoveAllListeners();
         _button.onClick.AddListener(delegate

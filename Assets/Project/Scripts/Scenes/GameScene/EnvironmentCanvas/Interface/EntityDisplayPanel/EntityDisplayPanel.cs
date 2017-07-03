@@ -34,6 +34,7 @@ public class EntityDisplayPanel : UIUnitPanel
     {
         if (_selectedEntity != null)
         {
+            UpdateEntityDisplay();
             if (_selectedEntity.GetEntityType() == EntityType.BUILDING)
             {
                 ActivateEntityBuildedDisplay(_selectedEntity.GetIsBuilding());
@@ -78,6 +79,11 @@ public class EntityDisplayPanel : UIUnitPanel
     public void ActivateEntityBuildedDisplay(bool p_active)
     {
         _entityBuildedDisplay.SetActive(p_active);
+    }
+
+    private void UpdateEntityDisplay()
+    {
+        _entityHealth.text = string.Format("{0} / {1}", _selectedEntity.GetCurrentHealth(), _selectedEntity.GetMaxHealth());
     }
 
     private void UpdateEntityBuildedDisplay()

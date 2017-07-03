@@ -70,6 +70,7 @@ public class Interface : MonoBehaviour
 
     public void UpdateResourcesPanel(int p_crystalAmount)
     {
+        Debug.Log("UpdateResourcesPanel: " + p_crystalAmount);
         _resourcesPanel.UpdateResources(p_crystalAmount);
     }
     #endregion

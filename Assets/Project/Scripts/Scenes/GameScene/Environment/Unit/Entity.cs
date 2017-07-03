@@ -32,10 +32,10 @@ public class Entity : NetworkBehaviour
     #endregion
 
     #region Protected Data
-    [SerializeField] private EntityType _entityType;
-    [SyncVar] private string _id;
-    [SerializeField] private int _team;
-    [SerializeField] private int _currentFloor = 0;
+    [SerializeField] protected EntityType _entityType;
+    [SyncVar] protected string _id;
+    [SerializeField] protected int _team;
+    [SerializeField] protected int _currentFloor = 0;
 
     [SyncVar] public NetworkInstanceId parentNetId;
 
@@ -45,8 +45,8 @@ public class Entity : NetworkBehaviour
     protected float _damage;
     protected float _attackSpeed;
 
-    private int _gatherEfficiency = 1;
-    private int _resourceCapacity;
+    protected int _gatherEfficiency = 1;
+    protected int _resourceCapacity;
 
 
     protected string _entityName;
@@ -54,15 +54,15 @@ public class Entity : NetworkBehaviour
     protected EntityVO __entityVO;
 
 
-    private TweenNodule _currentUnitCreationNodule;
+    protected TweenNodule _currentUnitCreationNodule;
 
-    private List<string> _listEntitiesToSpawn = new List<string>();
+    protected List<string> _listEntitiesToSpawn = new List<string>();
 
-    private NavMeshAgent _navMeshAgent;
+    protected NavMeshAgent _navMeshAgent;
 
-    private float _unitBuildPercentage;
+    protected float _unitBuildPercentage;
 
-    private bool _isBuilding = false;
+    protected bool _isBuilding = false;
 
 
     protected UnitMovementType _unitMovementType;
@@ -83,21 +83,21 @@ public class Entity : NetworkBehaviour
     [ClientRpc]
     public void RpcInitialize(string p_unitID, Color p_color, string p_entitySpecificType)
     {
-        Debug.Log("Initialize Entity: " + p_unitID + " | team : " + _team + " | " + p_color);
+       // Debug.Log("Initialize Entity: " + p_unitID + " | team : " + _team + " | " + p_color);
         _id = p_unitID;
 
         InitializeEntityData(p_entitySpecificType, p_color);
     }
 
-    private void InitializeEntityData(string p_entitySpecificType, Color p_entityColor)
+    protected void InitializeEntityData(string p_entitySpecificType, Color p_entityColor)
     {
         __entityVO = DataManager.instance.GetEntityVO(p_entitySpecificType);
-        Debug.Log("CmdInitializeEntityData");
+       // Debug.Log("CmdInitializeEntityData");
         SetEntityName(__entityVO.entityName);
         SetEntityColor(p_entityColor);
-        Debug.Log("_entityVO listAvaiableCommands Count: " + __entityVO.listAvaiableCommands.Count);
+       // Debug.Log("_entityVO listAvaiableCommands Count: " + __entityVO.listAvaiableCommands.Count);
         _commandController.SetListAvaiableCommands(__entityVO.listAvaiableCommands);
-        Debug.Log("_entityVO builds Count: " + __entityVO.listAvaiableEntitiesToBuild.Count);
+       // Debug.Log("_entityVO builds Count: " + __entityVO.listAvaiableEntitiesToBuild.Count);
         _listAvaiableEntities = __entityVO.listAvaiableEntitiesToBuild;
         _currentHealth = _maxHealth = __entityVO.maxHealth;
         _range = __entityVO.range;
@@ -107,19 +107,10 @@ public class Entity : NetworkBehaviour
         _resourceCapacity = __entityVO.resourceCapacity;
         transform.localScale = __entityVO.size;
 
-        switch (__entityVO.entityType)
-        {
-            case EntityType.BUILDING:
-                gameObject.AddComponent<NavMeshSourceTag>();
-                gameObject.transform.position += new Vector3(0f, GetComponent<Renderer>().bounds.extents.y, 0f);
-                break;
-            case EntityType.UNIT:        
-                _navMeshAgent = gameObject.AddComponent<NavMeshAgent>();
-                _navMeshAgent.speed = __entityVO.speed;
-                _navMeshAgent.angularSpeed = 360f;
-                _navMeshAgent.acceleration = 10f;
-                break;
-        }
+        _navMeshAgent = gameObject.AddComponent<NavMeshAgent>();
+        _navMeshAgent.speed = __entityVO.speed;
+        _navMeshAgent.angularSpeed = 360f;
+        _navMeshAgent.acceleration = 10f;
     }
 
     public void AUpdate()
@@ -132,6 +123,7 @@ public class Entity : NetworkBehaviour
         _currentHealth -= p_damage;
         if (_currentHealth <= 0)
         {
+            _currentHealth = 0;
             if (onDeath != null)
                 onDeath(this);
         }
@@ -257,7 +249,7 @@ public class Entity : NetworkBehaviour
         SpawnUnitList();
     }
 
-    private void SpawnUnitList()
+    protected void SpawnUnitList()
     {
         if (_listEntitiesToSpawn.Count > 0)
         {
@@ -274,7 +266,7 @@ public class Entity : NetworkBehaviour
         }
     }
 
-    private void CreateNewUnit(string p_unitType, Action p_callbackFinish)
+    protected void CreateNewUnit(string p_unitType, Action p_callbackFinish)
     {
         if (_currentUnitCreationNodule != null)
             _currentUnitCreationNodule.Stop();
@@ -282,6 +274,8 @@ public class Entity : NetworkBehaviour
         float __duration = DataManager.instance.GetEntityVO(p_unitType).timeToSpawn;
         _currentUnitCreationNodule = ATween.FloatTo(0f, 1f, __duration, TweenEase.LINEAR, delegate (float p_value)
         {
+            // x  =0.5
+            // (x * 10) / 10
             float __percentage = (p_value * __duration) / __duration;
             _unitBuildPercentage = __percentage;
         });

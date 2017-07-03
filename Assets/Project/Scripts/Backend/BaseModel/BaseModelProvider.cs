@@ -122,7 +122,7 @@ private string _macDBPath = System.Environment.GetFolderPath (Environment.Specia
             }
             __counter++;
         }
-        Debug.Log(__query);
+        //Debug.Log(__query);
         return __query;
     }
     private string BuildQuerySelect(SelectType p_selectType, string p_tableName, string[] p_arraySelectKeys, Dictionary<string, string[]> p_dictWhere)

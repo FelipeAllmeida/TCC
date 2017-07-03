@@ -301,7 +301,7 @@ public class LocalConnector
 
     private void CreateDatabaseaAtCurrentPlatform()
     {
-        Debug.Log("CreateDatabaseaAtCurrentPlatform");
+        //Debug.Log("CreateDatabaseaAtCurrentPlatform");
 //#if UNITY_EDITOR
 //        {
 //            GetEditorDatabasePath();
