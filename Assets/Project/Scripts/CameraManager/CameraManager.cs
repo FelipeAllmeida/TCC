@@ -55,23 +55,23 @@ public class CameraManager : MonoBehaviour
         bool __hasChange = false;
 
         Vector3 __newCameraPosition = _mainCamera.transform.position;
-        if (__mousePosition.x < __screenWidth * 0.05f && __mousePosition.x > 0f)
+        if ((__mousePosition.x < __screenWidth * 0.05f && __mousePosition.x > 0f) || Input.GetKey(KeyCode.LeftArrow))
         {
             __newCameraPosition += new Vector3(- _constCameraSpeedSensitivity, 0f, 0f);
             __hasChange = true;
         }
-        else if (__mousePosition.x > __screenWidth * 0.95f && __mousePosition.x < __screenWidth)
+        else if (__mousePosition.x > __screenWidth * 0.95f && __mousePosition.x < __screenWidth || Input.GetKey(KeyCode.RightArrow))
         {
             __newCameraPosition += new Vector3(_constCameraSpeedSensitivity, 0f, 0f);
             __hasChange = true;
         }
 
-        if (__mousePosition.y < __screenHeight * 0.05f && __mousePosition.y > 0f)
+        if (__mousePosition.y < __screenHeight * 0.05f && __mousePosition.y > 0f || Input.GetKey(KeyCode.DownArrow))
         {
             __newCameraPosition += new Vector3(0f, 0f, - _constCameraSpeedSensitivity);
             __hasChange = true;
         }
-        else if (__mousePosition.y > __screenHeight * 0.95f && __mousePosition.y < __screenHeight)
+        else if (__mousePosition.y > __screenHeight * 0.95f && __mousePosition.y < __screenHeight || Input.GetKey(KeyCode.UpArrow))
         {
             __newCameraPosition += new Vector3(0f, 0f, _constCameraSpeedSensitivity);
             __hasChange = true;

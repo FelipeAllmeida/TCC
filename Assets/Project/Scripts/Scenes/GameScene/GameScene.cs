@@ -7,7 +7,7 @@ public class GameScene : State<TCC.StateType>
 {
     #region Private Serialized-Data
     [SerializeField] private CameraManager _cameraManager;
-    [SerializeField] private Environment _environment;
+    [SerializeField] private EnvironmentWorld _environment;
     [SerializeField] private EnvironmentCanvas _environmentCanvas;
     #endregion
 
@@ -20,9 +20,9 @@ public class GameScene : State<TCC.StateType>
         DataManager.instance.AInitialize(delegate
         {
             _cameraManager.Initialize(new Vector3(100f, 8f, 100f));
+            ListenEnvironmentEvents();
             _environmentCanvas.AInitialize();
             _environment.AInitialize();
-            ListenEnvironmentEvents();
         });
     }
 

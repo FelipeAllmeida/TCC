@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -6,82 +7,86 @@ using SimpleJSON;
 
 public class LobbyScreen : MonoBehaviour
 {
+    #region Events
+    public event Action onJoinedRoom;
+    #endregion
+
     #region Private Serialized-Data
-    [SerializeField] private Image _background;
-    [SerializeField] private Text _headerText;
+    [SerializeField] private RoomLayoutGroup _roomLayoutGroup;
+    private RoomLayoutGroup RoomLayoutGroup;
+
+    [SerializeField] private Text _enterRoomText;
+    [SerializeField] private Text _createRoomText;
+    [SerializeField] private Button _enterRoomButton;
+    [SerializeField] private Button _createRoomButton;
     #endregion
 
     #region Private Data
-    private Dictionary<string, LobbyPlayerField> _dictLobbyPlayerField = new Dictionary<string, LobbyPlayerField>();
-    private float _lastLobbyFieldPosY = 0f;
-    private Vector2 _dimensions;
     #endregion
 
-    public void Initialize()
+    public void AInitialize()
     {
-        _headerText.text = "Lobby";
-        _dimensions = GetScreenDimensions();
+        _roomLayoutGroup.AInitialize();
 
+        _enterRoomButton.interactable = false;
+        _createRoomButton.interactable = false;
+
+        ListenEvents();
     }
 
-    public void EnableScreen(bool p_value)
+    private void ListenEvents()
     {
-        gameObject.SetActive(p_value);
-        ListenEvents(p_value);
-    }
-
-    public void EnableInputs(bool p_value)
-    {
-        
-    }
-
-    private Vector2 GetScreenDimensions()
-    {
-        return _background.rectTransform.rect.size;
-    }
-
-    private void ListenEvents(bool p_value)
-    {
-        Server.instance.onSocketResponse -= HandleOnSocketResponse;
-        if (p_value == true)
+        PhotonUtility.onConnectedToMaster += () =>
         {
-            Server.instance.onSocketResponse += HandleOnSocketResponse;
-        }
-    }
+            PhotonUtility.playerName = PlayerNetwork.instance.playerName;
 
-    private void HandleOnSocketResponse(string p_response)
-    {
-        JSONNode __output = JSON.Parse(p_response);
-        foreach (var key in __output.Keys)
+            Color __newColor = new Color(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f), 1f);
+            PhotonNetwork.player.SetCustomProperties(new ExitGames.Client.Photon.Hashtable() { { "Color", __newColor.ToArray()} });
+            PhotonUtility.automaticallySyncScene = true;
+            PhotonUtility.JoinLobby(TypedLobby.Default);
+        };
+
+        PhotonUtility.onJoinedRoom += () =>
         {
-            switch (key)
-            {
-                case "LobbyMembers":
-                    HandleOnNewPlayerConnect(__output[key]);
-                    break;
-            }
+            if (onJoinedRoom != null) onJoinedRoom();
+        };
+
+        PhotonUtility.onJoinedLobby += () =>
+        {
+            _createRoomButton.interactable = true;
+            _enterRoomButton.interactable = true;
+        };
+
+        _createRoomButton.onClick.AddListener(delegate
+        {
+            RoomOptions __roomOptions = new RoomOptions() { IsVisible = true, IsOpen = true, MaxPlayers = 4 };
+            PhotonUtility.CreateRoom(_createRoomText.text, __roomOptions, TypedLobby.Default);
+        });
+
+        _roomLayoutGroup.onClickJoinRoom -= HandleOnClickJoinRoom;
+        _roomLayoutGroup.onClickJoinRoom += HandleOnClickJoinRoom;
+    }
+
+    private void HandleOnClickJoinRoom(string p_roomName)
+    {
+        bool __joinedRoom = PhotonUtility.JoinRoom(p_roomName);
+        if (__joinedRoom == true)
+        {
+
+        }
+        else
+        {
+            Debug.LogError("Not able to join room: " + p_roomName);
         }
     }
 
-    private void HandleOnNewPlayerConnect(JSONNode p_node)
+    public void Activate()
     {
-        for (int i = 0;i < p_node.Count;i++)
-        {            
-            string __userID = p_node[i]["id"];
-            if (_dictLobbyPlayerField.ContainsKey(__userID) == false)
-            {
-                LobbyPlayerField __lobbyPlayerField = PoolManager.instance.Spawn(PoolType.LOBBY_PLAYER_FIELD).GetComponent<LobbyPlayerField>();
-                __lobbyPlayerField.transform.SetParent(transform);
-                __lobbyPlayerField.Intialize();
-                Vector2 __size = new Vector2(_dimensions.x, _dimensions.y * 0.1f);
-                Vector2 __position = new Vector2(0f, (_dimensions.y / 2f) - (__size.y * 0.5f) + (-__size.y  - (__size.y * 0.1f)) * (_dictLobbyPlayerField.Count + 1));
-                __lobbyPlayerField.SetSize(__size);
-                __lobbyPlayerField.SetPosition(__position);
-                __lobbyPlayerField.SetData(p_node[i]["user"]);
-                __lobbyPlayerField.gameObject.SetActive(true);
-                _lastLobbyFieldPosY = __lobbyPlayerField.GetPosition().y;
-                _dictLobbyPlayerField.Add(__userID, __lobbyPlayerField);
-            }        
-        }
+        gameObject.SetActive(true);
+    }
+
+    public void Disable()
+    {
+        gameObject.SetActive(false);
     }
 }

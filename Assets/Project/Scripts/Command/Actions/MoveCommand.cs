@@ -23,7 +23,23 @@ public class MoveCommand : Command
 
     public override void AUpdate()
     {
-        if ((_actor.GetNavMeshAgent().remainingDistance < _actor.GetRange()))
+        bool _isInsideRange = false;
+        if (_actor.GetNavMeshAgent().pathPending == true)
+        {
+            if ((Vector3.Distance(_previousPosition, _targetPosition)) < _actor.GetRange())
+            {
+                _isInsideRange = true;
+            }
+        }
+        else
+        {
+            if (((_actor.GetNavMeshAgent().remainingDistance < _actor.GetRange())))
+            {
+                _isInsideRange = true;
+            }
+        }
+
+        if (_isInsideRange == true)
         {
             _actor.GetNavMeshAgent().isStopped = true;
             _actor.GetNavMeshAgent().ResetPath();

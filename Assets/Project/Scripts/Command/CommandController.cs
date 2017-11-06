@@ -26,6 +26,10 @@ public class CommandController : MonoBehaviour
 
     private Command _command;
 
+    public void AInitialize()
+    {
+    }
+
     public void AUpdate()
     {
         if (_command != null)
@@ -70,8 +74,14 @@ public class CommandController : MonoBehaviour
 
     public void StopCurrentCommand()
     {
-        if (_command != null) _command.Stop();
+        if (_command != null)
+        {
+            _command.Stop();
+            _command = null;
+        }
+
         if (onCurrentCommandFinish != null) onCurrentCommandFinish = null;
+
         _currentCommand = CommandType.NONE;
     }
 

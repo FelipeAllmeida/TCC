@@ -12,6 +12,11 @@ public enum ResourceType
 public class Resource : MonoBehaviour 
 {
     public event Action onResourceDepleted;
+
+    #region Public Data
+    public PhotonView photonView;
+    #endregion
+
     #region Private Data
     private ResourceType _resourceType;
 
@@ -29,7 +34,8 @@ public class Resource : MonoBehaviour
 
 
     #region Action Methods
-    public void Initialize(int p_resourceQuantity = 250)
+    [PunRPC]
+    public void RPC_Initialize(int p_resourceQuantity = 250)
     {
         _resourceQuantity = p_resourceQuantity;
     }
@@ -50,8 +56,8 @@ public class Resource : MonoBehaviour
             __amountRemoved = _resourceQuantity;
             _resourceQuantity = 0;
             _isDepleted = true;
-            if (onResourceDepleted != null)
-                onResourceDepleted();
+            if (onResourceDepleted != null) onResourceDepleted();
+            PhotonUtility.Destroy(this);
         }
 
         return __amountRemoved;
@@ -75,6 +81,20 @@ public class Resource : MonoBehaviour
     }
     #endregion
     #endregion
+
+    private void OnPhotonSerializeView(PhotonStream p_photonStream, PhotonMessageInfo p_info)
+    {
+        if (p_photonStream.isWriting)
+        {
+            p_photonStream.SendNext(_resourceQuantity);
+            p_photonStream.SendNext(_isDepleted);
+        }
+        else
+        {
+            _resourceQuantity = (int)p_photonStream.ReceiveNext();
+            _isDepleted = (bool)p_photonStream.ReceiveNext();
+        }
+    }
 
 
 }

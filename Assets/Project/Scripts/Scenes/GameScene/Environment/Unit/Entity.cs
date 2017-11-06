@@ -18,7 +18,7 @@ public enum EntityType
     UNIT
 }
 
-public class Entity : NetworkBehaviour 
+public class Entity : MonoBehaviour 
 {
     #region Events
     public event Action onCurrentCommandFinish;
@@ -26,18 +26,22 @@ public class Entity : NetworkBehaviour
     public event Action<Entity> onEntityCreated;
     public event Action<Entity> onDeath;
 
-    public event Action<string, Vector3> onRequestCreateEntity;
+    public event Action<string, int, Vector3> onRequestCreateEntity;
 
     public event Action<ResourceType, int> onAddResource;
     #endregion
 
+    #region Public Data
+    public PhotonView photonView;
+    #endregion
+
     #region Protected Data
     [SerializeField] protected EntityType _entityType;
-    [SyncVar] protected string _id;
     [SerializeField] protected int _team;
     [SerializeField] protected int _currentFloor = 0;
+    [SerializeField] protected NavMeshAgent _navMeshAgent;
 
-    [SyncVar] public NetworkInstanceId parentNetId;
+    protected string _id;
 
     protected float _currentHealth;
     protected float _maxHealth;
@@ -58,7 +62,6 @@ public class Entity : NetworkBehaviour
 
     protected List<string> _listEntitiesToSpawn = new List<string>();
 
-    protected NavMeshAgent _navMeshAgent;
 
     protected float _unitBuildPercentage;
 
@@ -73,20 +76,21 @@ public class Entity : NetworkBehaviour
     [SerializeField] protected List<string> _listAvaiableEntities;
     #endregion
 
-    public override void OnStartClient()
-    {
-        GameObject parentObject = ClientScene.FindLocalObject(parentNetId);
-        transform.SetParent(parentObject.transform);
-        _team = parentObject.GetComponent<Player>().team;
-    }
+    //public override void OnStartClient()
+    //{
+    //    //GameObject parentObject = ClientScene.FindLocalObject(parentNetId);
+    //    //transform.SetParent(parentObject.transform);
+    //    //_team = parentObject.GetComponent<Player>().team;
+    //}
 
-    [ClientRpc]
-    public void RpcInitialize(string p_unitID, Color p_color, string p_entitySpecificType)
+    [PunRPC]
+    public void RPC_Initialize(string p_unitID, int p_team, string p_entitySpecificType)
     {
        // Debug.Log("Initialize Entity: " + p_unitID + " | team : " + _team + " | " + p_color);
         _id = p_unitID;
-
-        InitializeEntityData(p_entitySpecificType, p_color);
+        _team = p_team;
+        float[] __color = (float[])PhotonUtility.CustomProperties["Color"];
+        InitializeEntityData(p_entitySpecificType, __color.ToColor());
     }
 
     protected void InitializeEntityData(string p_entitySpecificType, Color p_entityColor)
@@ -107,15 +111,40 @@ public class Entity : NetworkBehaviour
         _resourceCapacity = __entityVO.resourceCapacity;
         transform.localScale = __entityVO.size;
 
-        _navMeshAgent = gameObject.AddComponent<NavMeshAgent>();
         _navMeshAgent.speed = __entityVO.speed;
         _navMeshAgent.angularSpeed = 360f;
         _navMeshAgent.acceleration = 10f;
     }
 
+    private void OnPhotonSerializeView(PhotonStream p_stream, PhotonMessageInfo p_info)
+    {
+        if (p_stream.isWriting)
+        {
+            if (_commandController.GetCurrentCommand() == CommandType.MOVE)
+            {
+                p_stream.SendNext(_navMeshAgent.destination);
+            }
+        }
+        else
+        {
+            if (_commandController.GetCurrentCommand() == CommandType.MOVE)
+            {
+                _navMeshAgent.destination = (Vector3)p_stream.ReceiveNext();
+            }
+            else
+            {
+                _navMeshAgent.isStopped = true;
+            }
+        }
+    }
+
     public void AUpdate()
     {
         _commandController.AUpdate();
+        if (photonView.isMine == false)
+        {
+            
+        }
     }
 
     public void InflictDamage(float p_damage)
@@ -283,7 +312,8 @@ public class Entity : NetworkBehaviour
         {
             Debug.Log("Unit Spawned: " + p_unitType);
             _unitBuildPercentage = 0f;
-            if (onRequestCreateEntity != null) onRequestCreateEntity(p_unitType, transform.position - new Vector3(0f,0f,  1 + (transform.localScale.x / 2f)));
+            
+            if (onRequestCreateEntity != null) onRequestCreateEntity(p_unitType, _team, transform.position - new Vector3(0f, 0f, 1 + (transform.localScale.x / 2f)));
             if (p_callbackFinish != null) p_callbackFinish();
         };
     }

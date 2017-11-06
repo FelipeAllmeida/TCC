@@ -1,31 +1,53 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class GameLobby : MonoBehaviour
 {
-    [SerializeField] private SignInScreen _signInScreen;
     [SerializeField] private LobbyScreen _lobbyScreen;
+    [SerializeField] private CurrentRoomScreen _currentRoomScreen;
 
-    public void AInitialize()
+
+    private void Start()
     {
-        _signInScreen.Initialize();
-        _signInScreen.EnableScreen(true);
+        PhotonUtility.InstanceInitialize();
 
-        _lobbyScreen.Initialize();
-        _lobbyScreen.EnableScreen(false);
+        _lobbyScreen.AInitialize();
+        _currentRoomScreen.AInitialize();
+
+        _lobbyScreen.Activate();
+        _currentRoomScreen.Disable();
 
         ListenScreenEvents();
     }
 
     private void ListenScreenEvents()
     {
-        _signInScreen.onSuccessfullyConnect += HandleOnSuccessfullyConnect;
+        _lobbyScreen.onJoinedRoom += HandleOnJoinedRoom;
+        _currentRoomScreen.onLeaveRoom += HandleOnLeaveRoom;
+        _currentRoomScreen.onClickStartMatchButton += HandleOnClickStartMatchButton;
     }
 
-    private void HandleOnSuccessfullyConnect()
+    private void HandleOnJoinedRoom()
     {
-        _signInScreen.EnableScreen(false);
-        _lobbyScreen.EnableScreen(true);
+        _lobbyScreen.Disable();
+        _currentRoomScreen.Activate();
     }
+
+    private void HandleOnLeaveRoom()
+    {
+        _lobbyScreen.Activate();
+        _currentRoomScreen.Disable();
+    }
+
+    private void HandleOnClickStartMatchButton()
+    {
+        //_lobbyScreen.Disable();
+        //_currentRoomScreen.Disable();
+        PhotonUtility.LoadLevel("Game");
+    }
+
+
 }
