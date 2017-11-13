@@ -28,8 +28,6 @@ public class GatherCommand : Command
     {
         if (_resource.isDepleted == true)
         {
-            if (_actionFinishGathering != null)
-                _actionFinishGathering();
             Stop();
             return;
         }
