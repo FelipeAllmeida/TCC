@@ -21,6 +21,11 @@ public class RoomLayoutGroup : MonoBehaviour
         return _listRooms;
     }
 
+    public void Disable()
+    {
+        PhotonUtility.onReceivedRoomListUpdate -= HandleOnReceivedRoomListUpdate;
+    }
+
     private void ListenEvents()
     {
         PhotonUtility.onReceivedRoomListUpdate -= HandleOnReceivedRoomListUpdate;

@@ -5,6 +5,17 @@ using UnityEngine.SceneManagement;
 
 public class PlayerNetwork : MonoBehaviour 
 {
+    public enum Colors
+    {
+        BLUE,
+        RED,
+        YELLOW,
+        GREEN,
+        WHITE,
+        ORANGE,
+        BLACK
+    }
+
     public static PlayerNetwork instance;
     public string playerName { get; private set; }
 

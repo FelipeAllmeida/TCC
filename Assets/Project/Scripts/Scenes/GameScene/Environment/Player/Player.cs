@@ -33,6 +33,8 @@ public class Player : MonoBehaviour
     private FakeEntity _fakeEntity;
 
     private string _playerName;
+    private Color _playerColor;
+
     private int _team;
     private int _idCounter = 0;
 
@@ -44,19 +46,20 @@ public class Player : MonoBehaviour
     #endregion
 
     [PunRPC]
-    public void RPC_Initialize(int p_team, Vector3 p_startPosition)
+    public void RPC_Initialize(int p_team, float[] p_arrayColor, Vector3 p_startPosition)
     {
         _playerName = PhotonNetwork.playerName;
         _team = p_team;
+        _playerColor = p_arrayColor.ToColor();
         InitializeDictResources();
 
         if (photonView.isMine)
         {
-            CreateEntity("BUILDING_CENTER", team, p_startPosition);
+            CreateEntity("BUILDING_CENTER", team, _playerColor, p_startPosition);
 
-            CreateEntity("UNIT_WORKER", team, p_startPosition - Vector3.forward);
-            CreateEntity("UNIT_WORKER", team, p_startPosition + Vector3.left - Vector3.forward);
-            CreateEntity("UNIT_WORKER", team, p_startPosition + Vector3.right - Vector3.forward);
+            CreateEntity("UNIT_WORKER", team, _playerColor, p_startPosition - Vector3.forward);
+            CreateEntity("UNIT_WORKER", team, _playerColor, p_startPosition + Vector3.left - Vector3.forward);
+            CreateEntity("UNIT_WORKER", team, _playerColor, p_startPosition + Vector3.right - Vector3.forward);
         }
     }
 
@@ -80,9 +83,165 @@ public class Player : MonoBehaviour
         }
     }
 
-    private void HandleRequestCreateNewEntity(string p_entitySpecificType, int p_team, Vector3 p_startPos)
+    #region InputManager Handlers
+    public void HandleMouseLeftClick(InputInfo p_inputInfo)
     {
-        CreateEntity(p_entitySpecificType, p_team, p_startPos);
+        GameObject __hit = p_inputInfo.hit;
+        if (_isSpawningEntityBuilding == true)
+        {
+            if (_currentSelectedEntity != null)
+            {
+                Vector3 __buildPos = p_inputInfo.worldClickPoint;
+                float __distance = Vector3.Distance(_dictEntity[_fakeEntity.GetConstructorID()].GetEntityPosition(), __buildPos);
+                Action<CommandType> __callbackBuildEntity = (CommandType p_commandType) =>
+                {
+                    if (p_commandType == CommandType.MOVE)
+                    {
+                        __callbackBuildEntity = null;
+                        _dictEntity[_fakeEntity.GetConstructorID()].AddEntityToSpawnList(_fakeEntity.GetEntityType(), __buildPos);
+                    }
+                };
+                PoolManager.instance.Despawn(PoolType.FAKE_ENTITY, _fakeEntity.gameObject);
+                _isSpawningEntityBuilding = false;
+                if (__distance < _dictEntity[_fakeEntity.GetConstructorID()].GetRange())
+                {
+                    __callbackBuildEntity(CommandType.MOVE);
+                }
+                else
+                {
+                    _dictEntity[_fakeEntity.GetConstructorID()].SetCurrentCommandFinishCallback(__callbackBuildEntity);
+                    //photonView.RPC("RPC_MoveEntity", PhotonTargets.All, _dictEntity[_fakeEntity.GetConstructorID()].photonView.viewID, __buildPos);
+                    MoveEntity(_dictEntity[_fakeEntity.GetConstructorID()], __buildPos);
+                }
+            }
+        }
+        else
+        {
+            switch (__hit.tag)
+            {
+                case "Entity":
+                    if (_currentSelectedEntity != null)
+                    {
+                        _currentSelectedEntity.SetSelected(false);
+                    }
+                    _currentSelectedEntity = __hit.GetComponent<Entity>();
+                    _currentSelectedEntity.SetSelected(true);
+                    bool __isPlayer = (_currentSelectedEntity.GetTeam() == team) ? true : false;
+                    if (onRequestShowSelectUnitUI != null)
+                        onRequestShowSelectUnitUI(__isPlayer, _currentSelectedEntity);
+                    break;
+                case "Resource":
+                    break;
+                case "Ground":
+                    if (_currentSelectedEntity != null)
+                    {
+                        _currentSelectedEntity.SetSelected(false);
+                    }
+                    _currentSelectedEntity = null;
+                    if (onRequestShowSelectUnitUI != null)
+                        onRequestShowSelectUnitUI(false, _currentSelectedEntity);
+
+                    break;
+            }
+        }
+    }
+
+    public void HandleMouseRightClick(InputInfo p_inputInfo)
+    {
+        GameObject __hit = p_inputInfo.hit;
+
+        if (__hit == null)
+            return;
+
+        if (_isSpawningEntityBuilding == true)
+        {
+            if (_isSpawningEntityBuilding == true)
+            {
+                PoolManager.instance.Despawn(PoolType.FAKE_ENTITY, _fakeEntity.gameObject);
+                _isSpawningEntityBuilding = false;
+            }
+        }
+        else
+        {
+            if (_currentSelectedEntity != null)
+            {
+                if (_currentSelectedEntity.GetTeam() == _team)
+                {
+                    float __distance;
+                    Action<CommandType> __callbackFinishCommand;
+                    switch (__hit.tag)
+                    {
+                        case "Entity":
+                            Entity __entity = __hit.GetComponent<Entity>();
+                            if (__entity.GetTeam() == _currentSelectedEntity.GetTeam())
+                            //ALLY
+                            {
+                                if (_currentSelectedEntity.GetEntityType() == EntityType.UNIT)
+                                {
+                                    if (p_inputInfo.hit != null && p_inputInfo.hit.tag == "Entity")
+                                    {
+                                        MoveEntity(_currentSelectedEntity, p_inputInfo.worldClickPoint);
+                                    }
+                                }
+                            }
+                            else
+                            //ENEMY
+                            {
+                                Debug.Log("Attack Enemy");
+                                __distance = Vector3.Distance(_dictEntity[_currentSelectedEntity.GetEntityID()].GetEntityPosition(), __entity.GetEntityPosition());
+                                GameObject __entityObject = _dictEntity[_currentSelectedEntity.GetEntityID()].gameObject;
+                                GameObject __targetEntityObject = __hit.gameObject;
+                                __callbackFinishCommand = (CommandType p_commandType) =>
+                                {
+                                    __callbackFinishCommand = null;
+                                    if (p_commandType != CommandType.ATTACK) return;
+                                    AttackEntity(__entityObject, __targetEntityObject);
+                                };
+                                if (__distance < _dictEntity[_currentSelectedEntity.GetEntityID()].GetRange())
+                                {
+                                    __callbackFinishCommand(CommandType.ATTACK);
+                                }
+                                else
+                                {
+                                    _dictEntity[_currentSelectedEntity.GetEntityID()].SetCurrentCommandFinishCallback(__callbackFinishCommand);
+                                    MoveEntity(_dictEntity[_currentSelectedEntity.GetEntityID()], __entity.GetEntityPosition());
+                                }
+                            }
+                            break;
+                        case "Ground":
+                            MoveEntity(_currentSelectedEntity, p_inputInfo.worldClickPoint);
+                            break;
+                        case "Resource":
+                            Resource __resource = __hit.GetComponent<Resource>();
+                            __distance = Vector3.Distance(_dictEntity[_currentSelectedEntity.GetEntityID()].GetEntityPosition(), __resource.transform.position);
+                            __callbackFinishCommand = (CommandType p_commandType) =>
+                            {
+                                __callbackFinishCommand = null;
+                                if (p_commandType != CommandType.GATHER)
+                                    return;
+                                GatherResource(_currentSelectedEntity, __resource);
+                            };
+
+                            if (__distance < _dictEntity[_currentSelectedEntity.GetEntityID()].GetRange())
+                            {
+                                __callbackFinishCommand(CommandType.GATHER);
+                            }
+                            else
+                            {
+                                _dictEntity[_currentSelectedEntity.GetEntityID()].SetCurrentCommandFinishCallback(__callbackFinishCommand);
+                                MoveEntity(_currentSelectedEntity, p_inputInfo.worldClickPoint);
+                            }
+                            break;
+                    }
+                }
+            }
+        }
+    }
+    #endregion
+
+    private void HandleRequestCreateNewEntity(string p_entitySpecificType, int p_team, Color p_color, Vector3 p_startPos)
+    {
+        CreateEntity(p_entitySpecificType, p_team, p_color, p_startPos);
     }
 
     private void HandleAddResource(ResourceType p_resourceType, int p_resourceAmount)
@@ -99,152 +258,7 @@ public class Player : MonoBehaviour
             onRequestUpdateResourcesUI(_dictResourcesAmount[ResourceType.CRYSTAL]);
     }
 
-    public void HandleMouseLeftClick(InputInfo p_inputInfo)
-    {
-        GameObject __hit = p_inputInfo.hit;
-        if (_isSpawningEntityBuilding == true)
-        {
-            if (_currentSelectedEntity != null)
-            { 
-                Vector3 __buildPos = p_inputInfo.worldClickPoint;
-                float __distance = Vector3.Distance(_dictEntity[_fakeEntity.GetConstructorID()].GetEntityPosition(), __buildPos);
-                Action __callbackBuildEntity = delegate
-                {
-                    __callbackBuildEntity = null;
-                    _dictEntity[_fakeEntity.GetConstructorID()].AddEntityToSpawnList(_fakeEntity.GetEntityType(), __buildPos);
-                };
-                PoolManager.instance.Despawn(PoolType.FAKE_ENTITY, _fakeEntity.gameObject);
-                _isSpawningEntityBuilding = false;
-                if (__distance < _dictEntity[_fakeEntity.GetConstructorID()].GetRange())
-                {
-                    __callbackBuildEntity();
-                }
-                else
-                {
-                    _dictEntity[_fakeEntity.GetConstructorID()].SetCurrentCommandFinishCallback(__callbackBuildEntity);
-                    //photonView.RPC("RPC_MoveEntity", PhotonTargets.All, _dictEntity[_fakeEntity.GetConstructorID()].photonView.viewID, __buildPos);
-                    MoveEntity(_dictEntity[_fakeEntity.GetConstructorID()], __buildPos);
-                }
-            }
-        }
-        else
-        {
-            switch (__hit.tag)
-            {
-                case "Entity":
-                    _currentSelectedEntity = __hit.GetComponent<Entity>();
-                    bool __isPlayer = (_currentSelectedEntity.GetTeam() == team) ? true : false;
-                    if (onRequestShowSelectUnitUI != null) onRequestShowSelectUnitUI(__isPlayer, _currentSelectedEntity);
-                    break;
-                case "Resource":
-                    break;
-                case "Ground":
-                    _currentSelectedEntity = null;
-                    if (onRequestShowSelectUnitUI != null)
-                        onRequestShowSelectUnitUI(false, _currentSelectedEntity);
 
-                    break;
-            }
-        }
-    }
-
-    public void HandleMouseRightClick(InputInfo p_inputInfo)
-    {
-        GameObject __hit = p_inputInfo.hit;
-
-        if (__hit == null) return;
-
-        if (_isSpawningEntityBuilding == true)
-        {
-            if (_isSpawningEntityBuilding == true)
-            {
-                PoolManager.instance.Despawn(PoolType.FAKE_ENTITY, _fakeEntity.gameObject);
-                _isSpawningEntityBuilding = false;            
-            }
-        }
-        else
-        {
-            if (_currentSelectedEntity != null)
-            {
-                if (_currentSelectedEntity.GetTeam() == _team)
-                {
-                    if (p_inputInfo.hit != null && p_inputInfo.hit.tag != "UI")
-                    {
-                        _currentSelectedEntity.StopCurrentCommand();
-                    }
-                    float __distance;
-                    Action __callbackFinishCommand;
-                    switch (__hit.tag)
-                    {
-                        case "Entity":
-                            Entity __entity = __hit.GetComponent<Entity>();
-                            if (__entity.GetTeam() == _currentSelectedEntity.GetTeam())
-                            //ALLY
-                            {
-                                if (_currentSelectedEntity.GetEntityType() == EntityType.UNIT)
-                                {
-                                    if (p_inputInfo.hit != null && p_inputInfo.hit.tag == "Entity")
-                                    {
-                                        //photonView.RPC("RPC_MoveEntity", PhotonTargets.All, _currentSelectedEntity.photonView.viewID, p_inputInfo.worldClickPoint);
-                                        MoveEntity(_currentSelectedEntity, p_inputInfo.worldClickPoint);
-                                    }
-                                }
-                            }
-                            else
-                            //ENEMY
-                            {
-                                Debug.Log("Attack Enemy");
-                                __distance = Vector3.Distance(_dictEntity[_currentSelectedEntity.GetEntityID()].GetEntityPosition(), __entity.GetEntityPosition());
-                                GameObject __entityObject = _dictEntity[_currentSelectedEntity.GetEntityID()].gameObject;
-                                GameObject __targetEntityObject = __hit.gameObject;
-                                __callbackFinishCommand = delegate
-                                {
-                                    __callbackFinishCommand = null;
-                                    RPC_AttackEntity(__entityObject, __targetEntityObject);
-                                };
-                                if (__distance < _dictEntity[_currentSelectedEntity.GetEntityID()].GetRange())
-                                {
-                                    __callbackFinishCommand();
-                                }
-                                else
-                                {
-                                    _dictEntity[_currentSelectedEntity.GetEntityID()].SetCurrentCommandFinishCallback(__callbackFinishCommand);
-                                    //photonView.RPC("RPC_MoveEntity", PhotonTargets.All, _dictEntity[_currentSelectedEntity.GetEntityID()].photonView.viewID, __entity.GetEntityPosition());
-                                    MoveEntity(_dictEntity[_currentSelectedEntity.GetEntityID()], __entity.GetEntityPosition());
-                                }
-                            }
-                            break;
-                        case "Ground":
-                            //photonView.RPC("RPC_MoveEntity", PhotonTargets.All, _currentSelectedEntity.photonView.viewID, p_inputInfo.worldClickPoint);
-                            MoveEntity(_currentSelectedEntity, p_inputInfo.worldClickPoint);
-                            break;
-                        case "Resource":                           
-                            Resource __resource = __hit.GetComponent<Resource>();
-                            __distance = Vector3.Distance(_dictEntity[_currentSelectedEntity.GetEntityID()].GetEntityPosition(), __resource.transform.position);
-                            __callbackFinishCommand = delegate
-                            {
-                                __callbackFinishCommand = null;
-                                GameObject __entityObject = _dictEntity[_currentSelectedEntity.GetEntityID()].gameObject;
-                                GameObject __resourceObject = __resource.gameObject;
-                                RPC_GatherResource(__entityObject, __resourceObject);
-                            };
-
-                            if (__distance < _dictEntity[_currentSelectedEntity.GetEntityID()].GetRange())
-                            {
-                                __callbackFinishCommand();
-                            }
-                            else
-                            {
-                                _dictEntity[_currentSelectedEntity.GetEntityID()].SetCurrentCommandFinishCallback(__callbackFinishCommand);
-                                //photonView.RPC("RPC_MoveEntity", PhotonTargets.All, _currentSelectedEntity.photonView.viewID, p_inputInfo.worldClickPoint);
-                                MoveEntity(_currentSelectedEntity, p_inputInfo.worldClickPoint);
-                            }
-                            break;
-                    }
-                }
-            }
-        }
-    }
 
     public void ExecuteTargetUnitCommnad(string p_entityID, CommandType p_commandType, params object[] p_args)
     {
@@ -291,7 +305,7 @@ public class Player : MonoBehaviour
         }
     }
 
-    private Entity CreateEntity(string p_entitySpecificType, int p_team, Vector3 p_position)
+    private Entity CreateEntity(string p_entitySpecificType, int p_team, Color p_playerColor, Vector3 p_position)
     {
         EntityVO __entityVO = DataManager.instance.GetEntityVO(p_entitySpecificType);
 
@@ -301,7 +315,7 @@ public class Player : MonoBehaviour
             bool __isBuilding = (__entityVO.entityType == EntityType.BUILDING) ? true : false;
 
             Entity __entity = PoolManager.PhotonSpawn(PoolType.ENTITY, p_position, photonView.viewID, __isBuilding).GetComponent<Entity>();
-            __entity.photonView.RPC("RPC_Initialize", PhotonTargets.All, Guid.NewGuid().ToString(), p_team, __entityVO.entitySpecificType);
+            __entity.photonView.RPC("RPC_Initialize", PhotonTargets.All, Guid.NewGuid().ToString(), p_team, p_playerColor.ToArray(), __entityVO.entitySpecificType);
 
             //old logic
             //Entity __entity = PoolManager.instance.Spawn(PoolType.ENTITY, transform, __isBuilding).GetComponent<Entity>();
@@ -326,7 +340,7 @@ public class Player : MonoBehaviour
         {
             if (_currentSelectedEntity == p_entity)
                 if (onRequestShowSelectUnitUI != null) onRequestShowSelectUnitUI(false, null);
-            DestroyEntity(p_entity.photonView.viewID);
+            DestroyEntity(p_entity);
         };
     }
 
@@ -350,22 +364,7 @@ public class Player : MonoBehaviour
         p_entity.MoveTo(p_targetPosition);
     }
 
-    [PunRPC]
-    private void RPC_MoveEntity(int p_viewID, Vector3 p_targetPosition)
-    {
-        Entity __entity = PhotonView.Find(p_viewID).GetComponent<Entity>();
-
-        if (__entity == null)
-        {
-            Debug.LogWarning(p_viewID + " Entity  is null");
-            return;
-        }
-
-        __entity.MoveTo(p_targetPosition);
-    }
-
-    [PunRPC]
-    private void RPC_AttackEntity(GameObject p_entity, GameObject p_other)
+    private void AttackEntity(GameObject p_entity, GameObject p_other)
     {
         Debug.Log("RpcAttackEntity");
         Entity __entity = p_entity.GetComponent<Entity>();
@@ -407,9 +406,10 @@ public class Player : MonoBehaviour
     #endregion
 
     #region Do On Server Commands
-    private void DestroyEntity(int p_viewID)
+    private void DestroyEntity(Entity p_entity) // p_viewID)
     {
-        photonView.RPC("RPC_DestroyEntity", PhotonTargets.MasterClient, p_viewID);
+        PhotonUtility.Destroy(p_entity.gameObject);
+        //photonView.RPC("RPC_DestroyEntity", PhotonTargets.MasterClient, p_viewID);
     }
 
     [PunRPC]
@@ -422,20 +422,15 @@ public class Player : MonoBehaviour
         }
     }
 
-    [PunRPC]
-    private void RPC_GatherResource(GameObject p_entity, GameObject p_resource)
+    private void GatherResource(Entity p_entity, Resource p_resource)
     {
-        Entity __entity = p_entity.GetComponent<Entity>();
-
-        if (__entity == null)
+        if (p_entity == null)
             return;
 
-        Resource __resource = p_resource.GetComponent<Resource>();
-
-        if (__resource == null)
+        if (p_resource == null)
             return;
 
-        __entity.TakeResource(__resource);
+        p_entity.TakeResource(p_resource);
     }
 
     #endregion

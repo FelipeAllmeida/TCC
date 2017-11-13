@@ -26,8 +26,6 @@ public class Resource : MonoBehaviour
 
     private bool _isDepleted = false;
     public bool isDepleted { get { return _isDepleted; } }
-
-    private TimerNodule _gatherNodule;
     #endregion
 
     #region Public Methods
@@ -57,11 +55,11 @@ public class Resource : MonoBehaviour
             _resourceQuantity = 0;
             _isDepleted = true;
             if (onResourceDepleted != null) onResourceDepleted();
-            PhotonUtility.Destroy(this);
         }
 
         return __amountRemoved;
     }
+
     #endregion
 
     #region Get Methods

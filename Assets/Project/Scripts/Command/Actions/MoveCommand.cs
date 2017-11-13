@@ -5,8 +5,8 @@ using UnityEngine;
 
 public class MoveCommand : Command 
 {
-    private Action _actionReachedDestination;
-    public MoveCommand(Entity p_actor, Vector3 p_targetPosition, Action p_callbackFinish = null)
+    private Action<CommandType> _actionReachedDestination;
+    public MoveCommand(Entity p_actor, Vector3 p_targetPosition, Action<CommandType> p_callbackFinish = null)
     {
         _actor = p_actor;
         _targetPosition = p_targetPosition;
@@ -23,6 +23,11 @@ public class MoveCommand : Command
 
     public override void AUpdate()
     {
+        if (_actor == null)
+        {
+            Stop();
+            return;
+        }
         bool _isInsideRange = false;
         if (_actor.GetNavMeshAgent().pathPending == true)
         {
@@ -45,16 +50,19 @@ public class MoveCommand : Command
             _actor.GetNavMeshAgent().ResetPath();
             if (_actionReachedDestination != null)
             {
-                _actionReachedDestination();
+                _actionReachedDestination(CommandType.MOVE);
                 _actionReachedDestination = null;
             }
         }
     }
 
     public override void Stop()
-    {  
-        _actor.GetNavMeshAgent().isStopped = true;
-        _actor.GetNavMeshAgent().ResetPath();
+    {
+        if (_actor != null)
+        {
+            _actor.GetNavMeshAgent().isStopped = true;
+            _actor.GetNavMeshAgent().ResetPath();
+        }
         _actionReachedDestination = null;
     }
 

@@ -1,9 +1,12 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public abstract class Command 
 {
+    public Action<CommandType> onCommandFinish; 
+
     public virtual CommandType Execute()
     {
         return CommandType.NONE;

@@ -14,4 +14,27 @@ public static class ExtensionMethods
     {
         return new float[] { p_source.r, p_source.g, p_source.b, p_source.a };
     }
+
+    public static Color ToColor(this PlayerNetwork.Colors p_source)
+    {
+        switch (p_source)
+        {
+            case PlayerNetwork.Colors.BLACK:
+                return Color.black;
+            case PlayerNetwork.Colors.BLUE:
+                return Color.blue;
+            case PlayerNetwork.Colors.GREEN:
+                return Color.green;
+            case PlayerNetwork.Colors.ORANGE:
+                return new Color(255f/255f, 153f/255f, 0f);
+            case PlayerNetwork.Colors.RED:
+                return Color.red;
+            case PlayerNetwork.Colors.WHITE:
+                return Color.white;
+            case PlayerNetwork.Colors.YELLOW:
+                return Color.yellow;
+            default:
+                return Color.white;
+        }
+    }
 }

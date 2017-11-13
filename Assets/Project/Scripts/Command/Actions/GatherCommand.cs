@@ -8,12 +8,11 @@ public class GatherCommand : Command
 {
     private Entity _actor;
     private Resource _resource;
-    private Action _actionFinishGathering;
+    private Action<CommandType> _actionFinishGathering;
     private TimerNodule _gatherNodule;
 
-    public GatherCommand(Entity p_actor, Resource p_resource, Action p_callbackFinish = null)
+    public GatherCommand(Entity p_actor, Resource p_resource, Action<CommandType> p_callbackFinish = null)
     {
-        Debug.Log("GatherCommand");
         _actor = p_actor;
         _resource = p_resource;
         _actionFinishGathering = p_callbackFinish;
@@ -30,7 +29,8 @@ public class GatherCommand : Command
         if (_resource.isDepleted == true)
         {
             if (_actionFinishGathering != null)
-                _actionFinishGathering();
+                _actionFinishGathering(CommandType.GATHER);
+            Stop();
             return;
         }
         _gatherNodule = Timer.WaitSeconds(_resource.GetExtractionTime(), delegate

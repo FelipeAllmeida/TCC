@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 using Framework;
+using System.Linq;
 
 public class EnvironmentWorld : MonoBehaviour 
 {
@@ -45,8 +46,11 @@ public class EnvironmentWorld : MonoBehaviour
     private void InitializePlayers()
     {
         Debug.Log("InitializePlayers: " + PhotonUtility.IsMasterClient);
+        Debug.Log("Send Rate: " + PhotonNetwork.sendRate);
         if (PhotonUtility.IsMasterClient)
         {
+            PhotonNetwork.sendRate = 30;
+            PhotonNetwork.sendRateOnSerialize = 30;
             PhotonPlayer[] __arrayPlayers = PhotonUtility.playerList;
 
             List<Player> __listPlayers = new List<Player>();
@@ -64,7 +68,8 @@ public class EnvironmentWorld : MonoBehaviour
             for (int i = 0; i < __listPlayers.Count; i++)
             {
                 Vector3 __randomStartPos = new Vector3(UnityEngine.Random.Range(-40f, 40f), 0f, UnityEngine.Random.Range(-40f, 40f));
-                __listPlayers[i].photonView.RPC("RPC_Initialize", PhotonTargets.All, i, __randomStartPos);
+                Color __playerColor = ((PlayerNetwork.Colors)PhotonUtility.playerList.ToList().Find(x => x.ID == __listPlayers[i].photonView.ownerId).CustomProperties["Color"]).ToColor();
+                __listPlayers[i].photonView.RPC("RPC_Initialize", PhotonTargets.All, i, __playerColor.ToArray(), __randomStartPos);
                 if (__listPlayers[i].photonView.isMine)
                 {
                     if (onRequestSetCameraFocusObject != null) onRequestSetCameraFocusObject(__randomStartPos);
@@ -73,7 +78,11 @@ public class EnvironmentWorld : MonoBehaviour
 
             for (int i = 0; i < 15; i++)
             {
-                SpawnResource(_resourcePrefab, new Vector3(UnityEngine.Random.Range(-40f, 40f), 0f, UnityEngine.Random.Range(-40f, 40f)));
+                Resource __resource =SpawnResource(_resourcePrefab, new Vector3(UnityEngine.Random.Range(-40f, 40f), 0f, UnityEngine.Random.Range(-40f, 40f)));
+                __resource.onResourceDepleted += () =>
+                {
+                    PhotonUtility.Destroy(__resource.gameObject);
+                };
             }
         }
 
@@ -167,10 +176,11 @@ public class EnvironmentWorld : MonoBehaviour
         gameObject.SetActive(false);
     }
 
-    public void SpawnResource(GameObject p_resource, Vector3 p_position)
+    public Resource SpawnResource(GameObject p_resource, Vector3 p_position)
     {
         Resource __resource = PoolManager.PhotonSpawn(PoolType.RESOURCE, p_position, null, false).GetComponent<Resource>();
-        __resource.photonView.RPC("RPC_Initialize", PhotonTargets.All, UnityEngine.Random.Range(80, 290));
+        __resource.photonView.RPC("RPC_Initialize", PhotonTargets.All, UnityEngine.Random.Range(10,35));
+        return __resource;
     }
     public void DespawnResource(GameObject p_resource)
     {

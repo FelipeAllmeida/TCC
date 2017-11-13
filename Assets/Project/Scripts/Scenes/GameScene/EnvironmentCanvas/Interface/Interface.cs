@@ -48,13 +48,13 @@ public class Interface : MonoBehaviour
     }
 
     #region Panels
-    public void SetSelectedUnit(bool p_isPlayer, Entity p_unit)
+    public void SetSelectedUnit(bool p_isPlayer, Entity p_entity)
     {
         if (p_isPlayer == true)
         {
-            _unitSelectionPanel.SetSelectedUnit(p_unit);        
+            _unitSelectionPanel.SetSelectedUnit(p_entity);        
         }
-        _entityDisplayPanel.SetSelectedUnit(p_unit);
+        _entityDisplayPanel.SetSelectedUnit(p_entity);
     }
 
     public void ShowDisplayBuildingUnitUI(bool p_enabled)
@@ -62,7 +62,7 @@ public class Interface : MonoBehaviour
         _entityDisplayPanel.ActivateEntityBuildedDisplay(p_enabled);
     }
 
-    public void DeselectUnit(Entity p_unit)
+    public void DeselectUnit(Entity p_entity)
     {
         _unitSelectionPanel.DeselectUnit();
         _entityDisplayPanel.DeselectUnit();

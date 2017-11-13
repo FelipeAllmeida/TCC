@@ -141,6 +141,7 @@ public class PhotonUtility : MonoBehaviour
 
     public static void Destroy(GameObject p_gameObject)
     {
+        Debug.Log("Destroy Object: " + p_gameObject.name);
         PhotonNetwork.Destroy(p_gameObject);
     }
 

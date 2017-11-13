@@ -26,7 +26,7 @@ public class Entity : MonoBehaviour
     public event Action<Entity> onEntityCreated;
     public event Action<Entity> onDeath;
 
-    public event Action<string, int, Vector3> onRequestCreateEntity;
+    public event Action<string, int, Color, Vector3> onRequestCreateEntity;
 
     public event Action<ResourceType, int> onAddResource;
     #endregion
@@ -39,6 +39,7 @@ public class Entity : MonoBehaviour
     [SerializeField] protected EntityType _entityType;
     [SerializeField] protected int _team;
     [SerializeField] protected int _currentFloor = 0;
+    [SerializeField] protected GameObject _selectedGameObject;
     [SerializeField] protected NavMeshAgent _navMeshAgent;
 
     protected string _id;
@@ -54,6 +55,10 @@ public class Entity : MonoBehaviour
 
 
     protected string _entityName;
+    protected Color _entityColor;
+
+    protected Vector3 _syncPosition;
+    protected Quaternion _syncQuaternion;
 
     protected EntityVO __entityVO;
 
@@ -66,7 +71,6 @@ public class Entity : MonoBehaviour
     protected float _unitBuildPercentage;
 
     protected bool _isBuilding = false;
-
 
     protected UnitMovementType _unitMovementType;
     #endregion
@@ -84,13 +88,13 @@ public class Entity : MonoBehaviour
     //}
 
     [PunRPC]
-    public void RPC_Initialize(string p_unitID, int p_team, string p_entitySpecificType)
+    public void RPC_Initialize(string p_unitID, int p_team, float[] p_arrayColor, string p_entitySpecificType)
     {
        // Debug.Log("Initialize Entity: " + p_unitID + " | team : " + _team + " | " + p_color);
         _id = p_unitID;
         _team = p_team;
-        float[] __color = (float[])PhotonUtility.CustomProperties["Color"];
-        InitializeEntityData(p_entitySpecificType, __color.ToColor());
+
+        InitializeEntityData(p_entitySpecificType, p_arrayColor.ToColor());
     }
 
     protected void InitializeEntityData(string p_entitySpecificType, Color p_entityColor)
@@ -99,8 +103,8 @@ public class Entity : MonoBehaviour
        // Debug.Log("CmdInitializeEntityData");
         SetEntityName(__entityVO.entityName);
         SetEntityColor(p_entityColor);
-       // Debug.Log("_entityVO listAvaiableCommands Count: " + __entityVO.listAvaiableCommands.Count);
-        _commandController.SetListAvaiableCommands(__entityVO.listAvaiableCommands);
+        // Debug.Log("_entityVO listAvaiableCommands Count: " + __entityVO.listAvaiableCommands.Count);
+        _commandController.AInitialize(__entityVO.listAvaiableCommands);
        // Debug.Log("_entityVO builds Count: " + __entityVO.listAvaiableEntitiesToBuild.Count);
         _listAvaiableEntities = __entityVO.listAvaiableEntitiesToBuild;
         _currentHealth = _maxHealth = __entityVO.maxHealth;
@@ -111,6 +115,12 @@ public class Entity : MonoBehaviour
         _resourceCapacity = __entityVO.resourceCapacity;
         transform.localScale = __entityVO.size;
 
+        _selectedGameObject.SetActive(false);
+        Vector3 __localPos = _selectedGameObject.transform.localPosition;
+        __localPos.y = - transform.localScale.y / 2f;
+        _selectedGameObject.transform.localPosition = __localPos;
+        _selectedGameObject.transform.localScale = new Vector3(__entityVO.size.x + 1.5f, __entityVO.size.x + 1.5f, 1f);
+
         _navMeshAgent.speed = __entityVO.speed;
         _navMeshAgent.angularSpeed = 360f;
         _navMeshAgent.acceleration = 10f;
@@ -120,41 +130,52 @@ public class Entity : MonoBehaviour
     {
         if (p_stream.isWriting)
         {
-            if (_commandController.GetCurrentCommand() == CommandType.MOVE)
-            {
-                p_stream.SendNext(_navMeshAgent.destination);
-            }
+            p_stream.SendNext(_currentHealth);
+            p_stream.SendNext(transform.position);
+            p_stream.SendNext(transform.rotation);
+            //if (_commandController.GetCurrentCommand() == CommandType.MOVE)
+            //{
+            //    p_stream.SendNext(_navMeshAgent.destination);
+            //}
         }
         else
         {
-            if (_commandController.GetCurrentCommand() == CommandType.MOVE)
-            {
-                _navMeshAgent.destination = (Vector3)p_stream.ReceiveNext();
-            }
-            else
-            {
-                _navMeshAgent.isStopped = true;
-            }
+            _currentHealth = (float)p_stream.ReceiveNext();
+            Vector3.Lerp(transform.position, (Vector3)p_stream.ReceiveNext(), 0.1f);
+            Quaternion.Lerp(transform.rotation, (Quaternion)p_stream.ReceiveNext(), 0.1f);
+            //if (_commandController.GetCurrentCommand() == CommandType.MOVE)
+            //{
+            //    _navMeshAgent.destination = (Vector3)p_stream.ReceiveNext();
+            //}
+            //else
+            //{
+            //    _navMeshAgent.isStopped = true;
+            //}
         }
     }
 
     public void AUpdate()
     {
         _commandController.AUpdate();
-        if (photonView.isMine == false)
-        {
-            
-        }
     }
 
     public void InflictDamage(float p_damage)
     {
-        _currentHealth -= p_damage;
+        photonView.RPC("RPC_InflictDamage", PhotonTargets.All, photonView.viewID, p_damage);
+    }
+
+    [PunRPC]
+    private void RPC_InflictDamage(int p_viewID, float p_damage)
+    {
+        PhotonView __photonView = PhotonView.Find(p_viewID);
+        if (__photonView == null) return;
+
+         _currentHealth -= p_damage;
         if (_currentHealth <= 0)
         {
             _currentHealth = 0;
-            if (onDeath != null)
-                onDeath(this);
+            if (photonView.isMine)
+                if (onDeath != null) onDeath(this);
         }
     }
 
@@ -162,6 +183,11 @@ public class Entity : MonoBehaviour
     {
         _entityName = p_name;
         gameObject.name = p_name;
+    }
+
+    public void SetSelected(bool p_value)
+    {
+        _selectedGameObject.SetActive(p_value);
     }
 
     public void SetEntityPosition(Vector3 p_position)
@@ -173,13 +199,14 @@ public class Entity : MonoBehaviour
         transform.position = p_position;
     }
 
-    public void SetCurrentCommandFinishCallback(Action p_callback)
+    public void SetCurrentCommandFinishCallback(Action<CommandType> p_callback)
     {
-        _commandController.onCurrentCommandFinish = p_callback;
+        _commandController.onCommandFinish = p_callback;
     }
 
     public void SetEntityColor(Color p_color)
     {
+        _entityColor = p_color;
         GetComponent<Renderer>().material.color = p_color;
     }
 
@@ -313,7 +340,7 @@ public class Entity : MonoBehaviour
             Debug.Log("Unit Spawned: " + p_unitType);
             _unitBuildPercentage = 0f;
             
-            if (onRequestCreateEntity != null) onRequestCreateEntity(p_unitType, _team, transform.position - new Vector3(0f, 0f, 1 + (transform.localScale.x / 2f)));
+            if (onRequestCreateEntity != null) onRequestCreateEntity(p_unitType, _team, _entityColor, transform.position - new Vector3(0f, 0f, 1 + (transform.localScale.x / 2f)));
             if (p_callbackFinish != null) p_callbackFinish();
         };
     }
@@ -375,9 +402,14 @@ public class Entity : MonoBehaviour
         _commandController.MoveTo(this, p_targetPosition);
     }
 
-    public void StopCurrentCommand()
+    public void StopCurrentCommand(CommandType p_commandType)
     {
-        _commandController.StopCurrentCommand();
+        _commandController.StopTargetCommand(p_commandType);
+    }
+
+    public void StopAllCommands()
+    {
+        _commandController.StopAllCommands();
     }
 
     public NavMeshAgent GetNavMeshAgent()

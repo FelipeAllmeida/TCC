@@ -40,8 +40,7 @@ public class LobbyScreen : MonoBehaviour
         {
             PhotonUtility.playerName = PlayerNetwork.instance.playerName;
 
-            Color __newColor = new Color(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f), 1f);
-            PhotonNetwork.player.SetCustomProperties(new ExitGames.Client.Photon.Hashtable() { { "Color", __newColor.ToArray()} });
+            PhotonNetwork.player.SetCustomProperties(new ExitGames.Client.Photon.Hashtable() { { "Color", PlayerNetwork.Colors.RED} });
             PhotonUtility.automaticallySyncScene = true;
             PhotonUtility.JoinLobby(TypedLobby.Default);
         };
@@ -87,6 +86,7 @@ public class LobbyScreen : MonoBehaviour
 
     public void Disable()
     {
+        _roomLayoutGroup.Disable();
         gameObject.SetActive(false);
     }
 }

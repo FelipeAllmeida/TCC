@@ -21,7 +21,7 @@ public class EntityIA : Entity
         SetEntityName(__entityVO.entityName);
         SetEntityColor(Color.yellow);
         // Debug.Log("_entityVO listAvaiableCommands Count: " + __entityVO.listAvaiableCommands.Count);
-        _commandController.SetListAvaiableCommands(__entityVO.listAvaiableCommands);
+        _commandController.AInitialize(__entityVO.listAvaiableCommands);
         // Debug.Log("_entityVO builds Count: " + __entityVO.listAvaiableEntitiesToBuild.Count);
         _listAvaiableEntities = __entityVO.listAvaiableEntitiesToBuild;
         _currentHealth = _maxHealth = __entityVO.maxHealth;
