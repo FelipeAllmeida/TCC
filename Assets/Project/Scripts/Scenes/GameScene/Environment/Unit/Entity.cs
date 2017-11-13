@@ -104,7 +104,7 @@ public class Entity : MonoBehaviour
         SetEntityName(__entityVO.entityName);
         SetEntityColor(p_entityColor);
         // Debug.Log("_entityVO listAvaiableCommands Count: " + __entityVO.listAvaiableCommands.Count);
-        _commandController.AInitialize(__entityVO.listAvaiableCommands);
+        _commandController.AInitialize();
        // Debug.Log("_entityVO builds Count: " + __entityVO.listAvaiableEntitiesToBuild.Count);
         _listAvaiableEntities = __entityVO.listAvaiableEntitiesToBuild;
         _currentHealth = _maxHealth = __entityVO.maxHealth;

@@ -11,12 +11,11 @@ public class AttackCommand : Command
     private TimerNodule _timerNodule;
     private bool _isFirtAttack = true;
 
-    public AttackCommand(Entity p_entity, Entity p_other, Action<CommandType> p_commandFinish = null)
+    public AttackCommand(Entity p_entity, Entity p_other)
     {
         Debug.Log("AttackCommand");
         _actor = p_entity;
         _other = p_other;
-        onCommandFinish = p_commandFinish;
     }
 
     public override CommandType Execute()
@@ -47,11 +46,6 @@ public class AttackCommand : Command
         }
         else
         {
-            if (_other == null)
-            {
-                if (onCommandFinish != null)
-                    onCommandFinish(CommandType.ATTACK);
-            }
             Stop();
         }
     }
