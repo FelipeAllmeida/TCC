@@ -38,9 +38,9 @@ public class Entity : MonoBehaviour
     #region Protected Data
     [SerializeField] protected EntityType _entityType;
     [SerializeField] protected int _team;
+    [SerializeField] protected NavMeshAgent _navMeshAgent;
     [SerializeField] protected int _currentFloor = 0;
     [SerializeField] protected GameObject _selectedGameObject;
-    [SerializeField] protected NavMeshAgent _navMeshAgent;
 
     protected string _id;
 
@@ -103,9 +103,7 @@ public class Entity : MonoBehaviour
        // Debug.Log("CmdInitializeEntityData");
         SetEntityName(__entityVO.entityName);
         SetEntityColor(p_entityColor);
-        // Debug.Log("_entityVO listAvaiableCommands Count: " + __entityVO.listAvaiableCommands.Count);
         _commandController.SetListAvaiableCommands(__entityVO.listAvaiableCommands);
-       // Debug.Log("_entityVO builds Count: " + __entityVO.listAvaiableEntitiesToBuild.Count);
         _listAvaiableEntities = __entityVO.listAvaiableEntitiesToBuild;
         _currentHealth = _maxHealth = __entityVO.maxHealth;
         _range = __entityVO.range;
@@ -115,11 +113,14 @@ public class Entity : MonoBehaviour
         _resourceCapacity = __entityVO.resourceCapacity;
         transform.localScale = __entityVO.size;
 
-        _selectedGameObject.SetActive(false);
-        Vector3 __localPos = _selectedGameObject.transform.localPosition;
-        __localPos.y = - transform.localScale.y / 2f;
-        _selectedGameObject.transform.localPosition = __localPos;
-        _selectedGameObject.transform.localScale = new Vector3(__entityVO.size.x + 1.5f, __entityVO.size.x + 1.5f, 1f);
+        if (_selectedGameObject != null)
+        {
+            _selectedGameObject.SetActive(false);
+            Vector3 __localPos = _selectedGameObject.transform.localPosition;
+            __localPos.y = - transform.localScale.y / 2f;
+            _selectedGameObject.transform.localPosition = __localPos;
+            _selectedGameObject.transform.localScale = new Vector3(__entityVO.size.x + 1.5f, __entityVO.size.x + 1.5f, 1f);
+        }
 
         _navMeshAgent.speed = __entityVO.speed;
         _navMeshAgent.angularSpeed = 360f;
@@ -154,7 +155,7 @@ public class Entity : MonoBehaviour
         }
     }
 
-    public void AUpdate()
+    public virtual void AUpdate()
     {
         _commandController.AUpdate();
     }
@@ -420,5 +421,35 @@ public class Entity : MonoBehaviour
     #endregion
 }
 
+public abstract class EntityStep<T>
+{
+    public event Action<T> onRequestChangeStep;
 
+    public abstract void Start(Entity p_entity);
+
+    public virtual void Pause()
+    {
+
+    }
+
+    public virtual void Resume()
+    {
+
+    }
+
+    public virtual void AUpdate()
+    {
+
+    }
+
+    public abstract void Finish();
+
+    public abstract T GetStepType();
+
+    protected void ChangeStep(T p_stepType)
+    {
+        if (onRequestChangeStep != null)
+            onRequestChangeStep(p_stepType);
+    }
+}
 

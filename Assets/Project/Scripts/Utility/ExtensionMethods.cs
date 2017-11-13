@@ -27,8 +27,8 @@ public static class ExtensionMethods
                 return Color.green;
             case PlayerNetwork.Colors.ORANGE:
                 return new Color(255f/255f, 153f/255f, 0f);
-            case PlayerNetwork.Colors.RED:
-                return Color.red;
+            //case PlayerNetwork.Colors.RED:
+            //    return Color.red;
             case PlayerNetwork.Colors.WHITE:
                 return Color.white;
             case PlayerNetwork.Colors.YELLOW:
