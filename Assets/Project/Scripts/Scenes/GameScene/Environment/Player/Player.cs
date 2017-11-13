@@ -93,19 +93,16 @@ public class Player : MonoBehaviour
             {
                 Vector3 __buildPos = p_inputInfo.worldClickPoint;
                 float __distance = Vector3.Distance(_dictEntity[_fakeEntity.GetConstructorID()].GetEntityPosition(), __buildPos);
-                Action<CommandType> __callbackBuildEntity = (CommandType p_commandType) =>
+                Action __callbackBuildEntity = () =>
                 {
-                    if (p_commandType == CommandType.MOVE)
-                    {
-                        __callbackBuildEntity = null;
-                        _dictEntity[_fakeEntity.GetConstructorID()].AddEntityToSpawnList(_fakeEntity.GetEntityType(), __buildPos);
-                    }
+                    __callbackBuildEntity = null;
+                    _dictEntity[_fakeEntity.GetConstructorID()].AddEntityToSpawnList(_fakeEntity.GetEntityType(), __buildPos);
                 };
                 PoolManager.instance.Despawn(PoolType.FAKE_ENTITY, _fakeEntity.gameObject);
                 _isSpawningEntityBuilding = false;
                 if (__distance < _dictEntity[_fakeEntity.GetConstructorID()].GetRange())
                 {
-                    __callbackBuildEntity(CommandType.MOVE);
+                    __callbackBuildEntity();
                 }
                 else
                 {
@@ -168,7 +165,7 @@ public class Player : MonoBehaviour
                 if (_currentSelectedEntity.GetTeam() == _team)
                 {
                     float __distance;
-                    Action<CommandType> __callbackFinishCommand;
+                    Action __callbackFinishCommand;
                     switch (__hit.tag)
                     {
                         case "Entity":
@@ -191,15 +188,14 @@ public class Player : MonoBehaviour
                                 __distance = Vector3.Distance(_dictEntity[_currentSelectedEntity.GetEntityID()].GetEntityPosition(), __entity.GetEntityPosition());
                                 GameObject __entityObject = _dictEntity[_currentSelectedEntity.GetEntityID()].gameObject;
                                 GameObject __targetEntityObject = __hit.gameObject;
-                                __callbackFinishCommand = (CommandType p_commandType) =>
+                                __callbackFinishCommand = () =>
                                 {
                                     __callbackFinishCommand = null;
-                                    if (p_commandType != CommandType.ATTACK) return;
                                     AttackEntity(__entityObject, __targetEntityObject);
                                 };
                                 if (__distance < _dictEntity[_currentSelectedEntity.GetEntityID()].GetRange())
                                 {
-                                    __callbackFinishCommand(CommandType.ATTACK);
+                                    __callbackFinishCommand();
                                 }
                                 else
                                 {
@@ -214,17 +210,15 @@ public class Player : MonoBehaviour
                         case "Resource":
                             Resource __resource = __hit.GetComponent<Resource>();
                             __distance = Vector3.Distance(_dictEntity[_currentSelectedEntity.GetEntityID()].GetEntityPosition(), __resource.transform.position);
-                            __callbackFinishCommand = (CommandType p_commandType) =>
+                            __callbackFinishCommand = () =>
                             {
                                 __callbackFinishCommand = null;
-                                if (p_commandType != CommandType.GATHER)
-                                    return;
                                 GatherResource(_currentSelectedEntity, __resource);
                             };
 
                             if (__distance < _dictEntity[_currentSelectedEntity.GetEntityID()].GetRange())
                             {
-                                __callbackFinishCommand(CommandType.GATHER);
+                                __callbackFinishCommand();
                             }
                             else
                             {

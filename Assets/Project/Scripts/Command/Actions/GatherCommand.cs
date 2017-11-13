@@ -8,10 +8,10 @@ public class GatherCommand : Command
 {
     private Entity _actor;
     private Resource _resource;
-    private Action<CommandType> _actionFinishGathering;
+    private Action _actionFinishGathering;
     private TimerNodule _gatherNodule;
 
-    public GatherCommand(Entity p_actor, Resource p_resource, Action<CommandType> p_callbackFinish = null)
+    public GatherCommand(Entity p_actor, Resource p_resource, Action p_callbackFinish = null)
     {
         _actor = p_actor;
         _resource = p_resource;
@@ -29,7 +29,7 @@ public class GatherCommand : Command
         if (_resource.isDepleted == true)
         {
             if (_actionFinishGathering != null)
-                _actionFinishGathering(CommandType.GATHER);
+                _actionFinishGathering();
             Stop();
             return;
         }

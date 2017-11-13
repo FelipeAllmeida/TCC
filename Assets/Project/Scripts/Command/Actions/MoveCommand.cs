@@ -5,8 +5,8 @@ using UnityEngine;
 
 public class MoveCommand : Command 
 {
-    private Action<CommandType> _actionReachedDestination;
-    public MoveCommand(Entity p_actor, Vector3 p_targetPosition, Action<CommandType> p_callbackFinish = null)
+    private Action _actionReachedDestination;
+    public MoveCommand(Entity p_actor, Vector3 p_targetPosition, Action p_callbackFinish = null)
     {
         _actor = p_actor;
         _targetPosition = p_targetPosition;
@@ -50,7 +50,7 @@ public class MoveCommand : Command
             _actor.GetNavMeshAgent().ResetPath();
             if (_actionReachedDestination != null)
             {
-                _actionReachedDestination(CommandType.MOVE);
+                _actionReachedDestination();
                 _actionReachedDestination = null;
             }
         }

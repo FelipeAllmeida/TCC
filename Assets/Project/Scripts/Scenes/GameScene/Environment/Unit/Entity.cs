@@ -199,9 +199,9 @@ public class Entity : MonoBehaviour
         transform.position = p_position;
     }
 
-    public void SetCurrentCommandFinishCallback(Action<CommandType> p_callback)
+    public void SetCurrentCommandFinishCallback(Action p_callback)
     {
-        _commandController.onCommandFinish = p_callback;
+        _commandController.onCurrentCommandFinish = p_callback;
     }
 
     public void SetEntityColor(Color p_color)
@@ -402,14 +402,9 @@ public class Entity : MonoBehaviour
         _commandController.MoveTo(this, p_targetPosition);
     }
 
-    public void StopCurrentCommand(CommandType p_commandType)
+    public void StopCurrentCommand()
     {
-        _commandController.StopTargetCommand(p_commandType);
-    }
-
-    public void StopAllCommands()
-    {
-        _commandController.StopAllCommands();
+        _commandController.StopCurrentCommand();
     }
 
     public NavMeshAgent GetNavMeshAgent()
